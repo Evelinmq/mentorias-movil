@@ -23,57 +23,29 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import mx.edu.utez.mentoriasmovil.ui.theme.card_grey
 import mx.edu.utez.mentoriasmovil.R
+import mx.edu.utez.mentoriasmovil.ui.theme.text_card_grey
 
 @Composable
-fun CarreraCard(nombreCarrera: String, onEditClick: () -> Unit) {
-    Card (
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = card_grey
-        )
+fun CarreraCard(
+    nombreCarrera: String,
+    onEditClick: () -> Unit
+) {
+
+    BaseCard(
+        onEditClick = onEditClick
     ) {
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
-        ) {
-            Column {
-                Text(
-                    text = "Carrera:",
-                    color = Color.Gray,
-                    fontSize = 14.sp
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = nombreCarrera,
-                    color = Color(0xFF1A3567), // Tu azul
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
-            }
-
-            // Botón de Editar
-            IconButton (
-                onClick = onEditClick,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .size(40.dp)
-                    .background(Color.White, RoundedCornerShape(8.dp))
-                    .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.editicon),
-                    contentDescription = "Editar carrera",
-                    tint = Color.Black,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
+        Text(
+            text = "Carrera:",
+            color = text_card_grey,
+            fontSize = 12.sp
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = nombreCarrera,
+            color = text_card_grey,
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp
+        )
     }
 }
