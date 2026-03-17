@@ -18,7 +18,7 @@ class RegistroViewModel : ViewModel() {
     fun onRegistrarClick(onSuccess: () -> Unit) {
         if (nombre.isNotBlank() && correo.contains("@")) {
             isLoading = true
-            onSuccess()
+            onSuccess()//.
             isLoading = false
         }
     }

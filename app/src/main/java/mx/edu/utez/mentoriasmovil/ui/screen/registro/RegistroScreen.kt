@@ -51,7 +51,7 @@ fun RegistroScreen(
         }
 
         Column(
-            modifier = Modifier
+            modifier = Modifier//.
                 .fillMaxSize()
                 .padding(horizontal = 32.dp)
                 .verticalScroll(rememberScrollState()),
