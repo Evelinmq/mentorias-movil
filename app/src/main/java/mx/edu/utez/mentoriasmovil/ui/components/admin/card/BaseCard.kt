@@ -30,7 +30,7 @@ import mx.edu.utez.mentoriasmovil.ui.theme.button_grey
 
 @Composable
 fun BaseCard(
-    onEditClick: () -> Unit,
+    onEditClick: (() -> Unit)? = null,
     onDeleteClick: (() -> Unit)? = null,
     onBlockClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
@@ -59,12 +59,14 @@ fun BaseCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
 
-                ActionButton(
-                    icon = R.drawable.editicon,
-                    color = Color.White,
-                    tint = Color.Black,
-                    onClick = onEditClick
-                )
+                onEditClick?.let { safeClick ->
+                    ActionButton(
+                        icon = R.drawable.editicon,
+                        color = Color.White,
+                        tint = Color.Black,
+                        onClick = safeClick // Ahora usamos la versión segura
+                    )
+                }
 
                 onBlockClick?.let {
                     Spacer(modifier = Modifier.width(8.dp))
