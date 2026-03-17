@@ -9,3 +9,15 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
+val text_card_grey = Color(0xFF7C7D80)
+
+val header_blue = Color(0xFF18397F)
+
+val button_blue = Color(0xFF132D63)
+
+val card_grey = Color(0xFFEFEFF0)
+
+val button_grey = Color(0xFF7C7D80)
+
+val green_status = Color(0xFF28CC3B)
