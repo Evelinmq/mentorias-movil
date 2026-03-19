@@ -29,7 +29,7 @@ import mx.edu.utez.mentoriasmovil.ui.components.AddButton
 import mx.edu.utez.mentoriasmovil.ui.components.admin.card.MateriaCard
 import mx.edu.utez.mentoriasmovil.R
 import mx.edu.utez.mentoriasmovil.ui.components.MainHeader
-import mx.edu.utez.mentoriasmovil.ui.components.admin.ConfirmDialog
+import mx.edu.utez.mentoriasmovil.ui.components.ConfirmDialog
 import mx.edu.utez.mentoriasmovil.ui.components.admin.modal.MateriaDialog
 import mx.edu.utez.mentoriasmovil.ui.nav.AdminBottomBar
 import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme

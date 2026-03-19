@@ -1,4 +1,4 @@
-package mx.edu.utez.mentoriasmovil.ui.components.admin
+package mx.edu.utez.mentoriasmovil.ui.components
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
