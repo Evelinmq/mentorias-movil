@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import mx.edu.utez.mentoriasmovil.ui.components.admin.card.AlumnoCard
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import mx.edu.utez.mentoriasmovil.R
 import androidx.compose.ui.Alignment
@@ -37,9 +39,23 @@ import mx.edu.utez.mentoriasmovil.ui.components.admin.modal.AlumnoDialog
 import mx.edu.utez.mentoriasmovil.ui.nav.AdminBottomBar
 import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
 
+
+/*
+* var viendoPendientes by remember { mutableStateOf(false) }
+
+AlumnosScreen(
+    paddingValues = padding,
+    viendoPendientes = viendoPendientes,
+    onToggleVista = { viendoPendientes = !viendoPendientes }
+)
+* */
 @Composable
-fun AlumnosScreen(paddingValues: PaddingValues) {
-    var viendoPendientes by remember { mutableStateOf(false) }
+fun AlumnosScreen(
+    paddingValues: PaddingValues,
+    viendoPendientes: Boolean,
+    onToggleVista: () -> Unit = {}
+) {
+
     var showConfirmDialog by remember { mutableStateOf(false) }
     var alumnoSeleccionado by remember { mutableStateOf("") }
     var tipoAccion by remember { mutableStateOf("") }
@@ -71,11 +87,18 @@ fun AlumnosScreen(paddingValues: PaddingValues) {
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { viendoPendientes = !viendoPendientes }) {
+            IconButton(
+                onClick = onToggleVista ,
+                modifier = Modifier
+                    .background(
+                        if (viendoPendientes) Color.Black else Color.Transparent,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+            ) {
                 Icon(
                     painter = painterResource(id = R.drawable.usersicon),
                     contentDescription = "Cambiar vista",
-                    tint = if (viendoPendientes) Color(0xFF1A3567) else Color.Black,
+                    tint = if (viendoPendientes) Color.White else Color.Black,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -152,7 +175,10 @@ fun AlumnosNormalPreview() {
             bottomBar = { AdminBottomBar(currentRoute = "Alumnos", onNavigate = {}) }
         ) { padding ->
             // Forzamos a que no esté en modo pendientes
-            AlumnosScreen(padding)
+            AlumnosScreen(
+                paddingValues = padding,
+                viendoPendientes = false
+            )
         }
     }
 }
@@ -161,21 +187,15 @@ fun AlumnosNormalPreview() {
 @Composable
 fun AlumnosPendientesPreview() {
     MentoriasMovilTheme {
-        Scaffold (
-            topBar = { MainHeader (onLogout = {}) },
-            bottomBar = { AdminBottomBar (currentRoute = "Alumnos", onNavigate = {}) }
-        ) { paddingValues ->
+        Scaffold(
+            topBar = { MainHeader(onLogout = {}) },
+            bottomBar = { AdminBottomBar(currentRoute = "Alumnos", onNavigate = {}) }
+        ) { padding ->
 
-            Column(modifier = Modifier.padding(paddingValues).fillMaxSize().background(Color.White)) {
-                AlumnoCard(
-                    nombre = "Marcos",
-                    apellidos = "Ramirez Pérez",
-                    rol = "Mentor",
-                    carrera = "Desarrollo de Software",
-                    correo = "Correo: 20243ds144@utez.edu.mx",
-                    esPendiente = true
-                )
-            }
+            AlumnosScreen(
+                paddingValues = padding,
+                viendoPendientes = true
+            )
         }
     }
 }
