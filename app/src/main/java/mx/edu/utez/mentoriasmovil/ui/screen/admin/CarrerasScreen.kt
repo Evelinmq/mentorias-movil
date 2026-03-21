@@ -32,18 +32,16 @@ import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import mx.edu.utez.mentoriasmovil.ui.components.admin.modal.CarreraDialog
-
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 @Composable
 fun CarrerasScreen(paddingValues: PaddingValues) {
 
-    // ESTADOS PARA CONTROLAR LOS MODALES
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
-    // Nombre de la carrera a editar
     var carreraSeleccionada by remember { mutableStateOf("Desarrollo de Software") }
 
-    // --- 2. LÓGICA DE VISIBILIDAD DE LOS DIÁLOGOS ---
     if (showAddDialog) {
         CarreraDialog(
             isEdit = false,
@@ -67,44 +65,48 @@ fun CarrerasScreen(paddingValues: PaddingValues) {
         )
     }
 
-    Column (
+    val listaCarreras = listOf(
+        "Desarrollo de Software",
+        "Diseño Digital",
+        "Ciberseguridad"
+    )
+
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
             .background(Color.White)
-            .verticalScroll(rememberScrollState())
     ) {
-        // Icono de Notificación
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            contentAlignment = Alignment.CenterEnd
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.bellicon),
-                contentDescription = null,
-                modifier = Modifier.size(28.dp),
-                tint = Color.Black
-            )
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.bellicon),
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = Color.Black
+                )
+            }
         }
 
-        // Botón Agregar
-        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-            AddButton(onClick = { showAddDialog = true })
+        item {
+            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                AddButton(onClick = { showAddDialog = true })
+            }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
-        // DESPÚES SE CONECTARÁ A LA BD-.-.-.-.-.-...-.-...-.-.--
-        // AQUÍ
-        val listaCarreras = listOf("Desarrollo de Software", "Diseño Digital", "Ciberseguridad")
-
-        listaCarreras.forEach { nombre ->
-            CarreraCard (
+        items(listaCarreras) { nombre ->
+            CarreraCard(
                 nombreCarrera = nombre,
                 onEditClick = {
-                    // Guarda el nombre para el modal de editar
                     carreraSeleccionada = nombre
                     showEditDialog = true
                 }
@@ -114,6 +116,7 @@ fun CarrerasScreen(paddingValues: PaddingValues) {
         }
     }
 }
+
 
 @Preview(showSystemUi = true)
 @Composable

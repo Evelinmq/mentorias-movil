@@ -33,6 +33,8 @@ import mx.edu.utez.mentoriasmovil.ui.components.ConfirmDialog
 import mx.edu.utez.mentoriasmovil.ui.components.admin.modal.MateriaDialog
 import mx.edu.utez.mentoriasmovil.ui.nav.AdminBottomBar
 import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 @Composable
 fun MateriasScreen(paddingValues: PaddingValues) {
@@ -48,11 +50,10 @@ fun MateriasScreen(paddingValues: PaddingValues) {
 
     // --- DIÁLOGOS ---
     if (showAddDialog) {
-        MateriaDialog (
+        MateriaDialog(
             isEdit = false,
             onDismiss = { showAddDialog = false },
             onConfirm = { c, m, cu ->
-                /* Lógica para guardar */
                 showAddDialog = false
             }
         )
@@ -70,49 +71,55 @@ fun MateriasScreen(paddingValues: PaddingValues) {
     }
 
     if (showDeleteConfirm) {
-        ConfirmDialog (
+        ConfirmDialog(
             title = "Eliminar Materia",
             message = "¿Eliminar la materia '$itemAEliminar'? Esta acción no se puede deshacer.",
             onDismiss = { showDeleteConfirm = false },
             onConfirm = {
-                // AQUÍ VA A IR LA LÓGICA PARA BORRAR EN LA BD
                 println("Eliminando $itemAEliminar...")
                 showDeleteConfirm = false
             }
         )
     }
 
-    // --- DISEÑO DE LA PANTALLA ---
-    Column (
+    val listaMaterias = listOf(
+        Triple("Desarrollo de Software", "Programación I", "5"),
+        Triple("Desarrollo de Software", "Base de Datos", "4")
+    )
+
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
             .background(Color.White)
-            .verticalScroll(rememberScrollState())
     ) {
-        // Notificación
-        Box(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            contentAlignment = Alignment.CenterEnd) {
-            Icon(painterResource(id = R.drawable.bellicon),
-                contentDescription = null, modifier = Modifier.size(28.dp))
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.bellicon),
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
         }
 
-        // Botón Agregar
-        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-            AddButton (onClick = { showAddDialog = true })
+        item {
+            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                AddButton(onClick = { showAddDialog = true })
+            }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
-        // Lista de Materias EJEMPLO
-        val listaMaterias = listOf(
-            Triple("Desarrollo de Software", "Programación I", "5"),
-            Triple("Desarrollo de Software", "Base de Datos", "4")
-        )
-
-        listaMaterias.forEach { (carrera, materia, cuatri) ->
-            MateriaCard (
+        items(listaMaterias) { (carrera, materia, cuatri) ->
+            MateriaCard(
                 carrera = carrera,
                 materia = materia,
                 cuatrimestre = cuatri,
@@ -121,7 +128,7 @@ fun MateriasScreen(paddingValues: PaddingValues) {
                     showEditDialog = true
                 },
                 onDeleteClick = {
-                    itemAEliminar = materia // Pasar el nombre
+                    itemAEliminar = materia
                     showDeleteConfirm = true
                 }
             )
@@ -130,6 +137,7 @@ fun MateriasScreen(paddingValues: PaddingValues) {
         }
     }
 }
+
 
 @Preview(showSystemUi = true, device = "spec:width=411dp,height=891dp")
 @Composable

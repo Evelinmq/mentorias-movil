@@ -37,6 +37,8 @@ import mx.edu.utez.mentoriasmovil.ui.components.ConfirmDialog
 import mx.edu.utez.mentoriasmovil.ui.components.admin.modal.AlumnoDialog
 import mx.edu.utez.mentoriasmovil.ui.nav.AdminBottomBar
 import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 
 /*
@@ -59,7 +61,6 @@ fun AlumnosScreen(
     var alumnoSeleccionado by remember { mutableStateOf("") }
     var tipoAccion by remember { mutableStateOf("") }
 
-    // --- LÓGICA DE LA ALERTA (Se queda igual) ---
     if (showConfirmDialog) {
         ConfirmDialog(
             title = if (tipoAccion == "eliminar") "Eliminar Usuario" else "Desactivar Usuario",
@@ -71,28 +72,25 @@ fun AlumnosScreen(
         )
     }
 
-    // COLUMNA PRINCIPAL (Sin scroll aquí para que el header no se vaya)
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues) // Aplicamos el padding del Scaffold
+            .padding(paddingValues)
             .background(Color.White)
     ) {
-        // 1. HEADER CON ICONOS (Fijo arriba)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, end = 16.dp, bottom = 8.dp), // Ajustamos padding
+                .padding(top = 8.dp, end = 16.dp, bottom = 8.dp),
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
-                onClick = onToggleVista ,
-                modifier = Modifier
-                    .background(
-                        if (viendoPendientes) Color.Black else Color.Transparent,
-                        shape = RoundedCornerShape(8.dp)
-                    )
+                onClick = onToggleVista,
+                modifier = Modifier.background(
+                    if (viendoPendientes) Color.Black else Color.Transparent,
+                    shape = RoundedCornerShape(8.dp)
+                )
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.usersicon),
@@ -112,54 +110,54 @@ fun AlumnosScreen(
             )
         }
 
-        // 2. CUERPO CON SCROLL (Aquí es donde va el scroll)
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
         ) {
-            // Botón Agregar / Lupa
             if (!viendoPendientes) {
-                Row(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    AddButton(onClick = { /* ... */ })
-                    // Aquí podrías poner el botón de la lupa si quieres
+                item {
+                    Row(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        AddButton(onClick = { /* ... */ })
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // LISTA DINÁMICA
-            if (viendoPendientes) {
-                AlumnoCard(
-                    nombre = "Marcos",
-                    apellidos = "Ramirez Fernandez",
-                    rol = "Mentor",
-                    carrera = "Desarrollo de Software",
-                    correo = "20243ds144@utez.edu.mx",
-                    esPendiente = true,
-                    onAcceptClick = { /* ... */ },
-                    onRejectClick = { /* ... */ }
-                )
-            } else {
-                AlumnoCard(
-                    nombre = "Marcos",
-                    apellidos = "Ramirez Pérez",
-                    rol = "Aprendiz",
-                    carrera = "Desarrollo de Software",
-                    correo = "20243ds144@utez.edu.mx",
-                    esPendiente = false,
-                    onEditClick = { /* ... */ },
-                    onDeleteClick = {
-                        alumnoSeleccionado = "Marcos Ramirez";
-                        tipoAccion = "eliminar";
-                        showConfirmDialog = true
-                    },
-                    onBlockClick = {
-                        alumnoSeleccionado = "Marcos Ramirez";
-                        tipoAccion = "desactivar";
-                        showConfirmDialog = true
-                    }
-                )
+            item {
+                if (viendoPendientes) {
+                    AlumnoCard(
+                        nombre = "Marcos",
+                        apellidos = "Ramirez Fernandez",
+                        rol = "Mentor",
+                        carrera = "Desarrollo de Software",
+                        correo = "20243ds144@utez.edu.mx",
+                        esPendiente = true,
+                        onAcceptClick = { /* ... */ },
+                        onRejectClick = { /* ... */ }
+                    )
+                } else {
+                    AlumnoCard(
+                        nombre = "Marcos",
+                        apellidos = "Ramirez Pérez",
+                        rol = "Aprendiz",
+                        carrera = "Desarrollo de Software",
+                        correo = "20243ds144@utez.edu.mx",
+                        esPendiente = false,
+                        onEditClick = { /* ... */ },
+                        onDeleteClick = {
+                            alumnoSeleccionado = "Marcos Ramirez"
+                            tipoAccion = "eliminar"
+                            showConfirmDialog = true
+                        },
+                        onBlockClick = {
+                            alumnoSeleccionado = "Marcos Ramirez"
+                            tipoAccion = "desactivar"
+                            showConfirmDialog = true
+                        }
+                    )
+                }
             }
         }
     }
