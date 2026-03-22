@@ -91,7 +91,6 @@ fun HistorialScreen(paddingValues: PaddingValues) {
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
         ) {
             items(listaHistorial) { item ->
-                // CORRECCIÓN: Se agrega la lambda onClick
                 AsesoriaCard(
                     data = item,
                     onClick = {

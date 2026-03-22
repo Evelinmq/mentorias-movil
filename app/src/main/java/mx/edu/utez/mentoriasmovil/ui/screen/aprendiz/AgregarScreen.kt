@@ -46,7 +46,6 @@ fun AgregarScreen(paddingValues: PaddingValues) {
         )
     )
 
-    // Mostrar el diálogo si hay una asesoría seleccionada
     if (mostrarDialogo && asesoriaSeleccionada != null) {
         AsesoriaDetalleDialog(
             data = asesoriaSeleccionada!!,
@@ -70,7 +69,6 @@ fun AgregarScreen(paddingValues: PaddingValues) {
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
         ) {
             items(mentoriasDisponibles) { item ->
-                // USAMOS EL NUEVO COMPONENTE NEGRO SIN PUNTO
                 AgregarAsesoriaCard(
                     data = item,
                     onClick = {
