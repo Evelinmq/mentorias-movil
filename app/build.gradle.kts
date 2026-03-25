@@ -63,4 +63,11 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // Librería principal de Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+
+// Conversor de Gson para que Retrofit entienda tus clases de datos
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 }
