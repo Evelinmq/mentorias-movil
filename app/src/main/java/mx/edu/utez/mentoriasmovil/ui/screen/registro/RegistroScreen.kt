@@ -41,7 +41,7 @@ import mx.edu.utez.mentoriasmovil.viewmodel.RegistroViewModel
 
 @Composable
 fun RegistroScreen(
-    viewModel: RegistroViewModel = RegistroViewModel(),
+    viewModel: RegistroViewModel,
     onBackToLogin: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
