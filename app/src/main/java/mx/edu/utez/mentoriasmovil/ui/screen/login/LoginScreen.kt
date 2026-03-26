@@ -102,6 +102,13 @@ onNavigateToRegister: () -> Unit,
                     focusedBorderColor = Color(0xFF1A3B7A)
                 )
             )
+            if (viewModel.errorCorreo.isNotEmpty()) {
+            Text(
+                text = viewModel.errorCorreo,
+                color = Color.Red,
+                fontSize = 12.sp
+            )
+        }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -117,6 +124,14 @@ onNavigateToRegister: () -> Unit,
                     focusedBorderColor = Color(0xFF1A3B7A)
                 )
             )
+            if (viewModel.errorContrasena.isNotEmpty()) {
+                Text(
+                    text = viewModel.errorContrasena,
+                    color = Color.Red,
+                    fontSize = 12.sp
+                )
+            }
+
             TextButton(
                 onClick = { onNavigateToRecovery() },
                 modifier = Modifier.align(Alignment.Start)
@@ -125,6 +140,14 @@ onNavigateToRegister: () -> Unit,
             }
 
             Spacer(modifier = Modifier.height(32.dp))
+
+            if (viewModel.errorMessage != null) {
+                Text(
+                    text = viewModel.errorMessage!!,
+                    color = Color.Red,
+                    fontSize = 14.sp
+                )
+            }
 
             if (viewModel.isLoading) {
                 CircularProgressIndicator(color = Color(0xFF1A3B7A))

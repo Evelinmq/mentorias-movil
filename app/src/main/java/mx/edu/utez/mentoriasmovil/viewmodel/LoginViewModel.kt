@@ -12,6 +12,8 @@ import kotlin.text.isBlank
 
 class LoginViewModel() : ViewModel() {
 
+    var errorCorreo by mutableStateOf("")
+    var errorContrasena by mutableStateOf("")
     var correo by mutableStateOf("")
     var contrasena by mutableStateOf("")
 
@@ -22,14 +24,37 @@ class LoginViewModel() : ViewModel() {
 
     fun onLoginClick() {
         viewModelScope.launch {
-            isLoading = true
+
+            errorCorreo = ""
+            errorContrasena = ""
             errorMessage = null
+
+            var isValid = true
+
+
+            if (correo.isBlank()) {
+                errorCorreo = "El correo es obligatorio"
+                isValid = false
+            }
+
+
+            if (contrasena.isBlank()) {
+                errorContrasena = "La contraseña es obligatoria"
+                isValid = false
+            }
+
+
+            if (!isValid) return@launch
+
+
+            isLoading = true
 
             if (correo == "user@utez.edu.mx" && contrasena == "12345") {
                 isLoginSuccess = true
             } else {
-                errorMessage = "Credenciales incorrectas, Prueba: user@utez.edu.mx / 12345)"
+                errorMessage = "Credenciales incorrectas"
             }
+
             isLoading = false
         }
     }
