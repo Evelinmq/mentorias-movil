@@ -20,12 +20,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -38,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import mx.edu.utez.mentoriasmovil.R
 import androidx.compose.ui.unit.sp
 import mx.edu.utez.mentoriasmovil.viewmodel.RegistroViewModel
+import androidx.compose.runtime.setValue
 
 @Composable
 fun RegistroScreen(
@@ -73,24 +79,38 @@ fun RegistroScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            RegistroField(value = viewModel.nombre, onValueChange = { viewModel.nombre = it }, label = "Nombre(s)")
-            RegistroField(value = viewModel.apellidos, onValueChange = { viewModel.apellidos = it }, label = "Apellidos")
-            RegistroField(value = viewModel.correo, onValueChange = { viewModel.correo = it }, label = "Email")
+            RegistroField(
+                value = viewModel.nombre,
+                onValueChange = { viewModel.nombre = it },
+                label = "Nombre(s)",
+                error = viewModel.errorNombre
+            )
+
+            RegistroField(
+                value = viewModel.apellidos,
+                onValueChange = { viewModel.apellidos = it },
+                label = "Apellidos",
+                error = viewModel.errorApellidos
+            )
+
+            RegistroField(
+                value = viewModel.correo,
+                onValueChange = { viewModel.correo = it },
+                label = "Email",
+                error = viewModel.errorCorreo
+            )
+
             RegistroField(
                 value = viewModel.contrasena,
                 onValueChange = { viewModel.contrasena = it },
                 label = "Password",
+                error = viewModel.errorContrasena,
                 isPassword = true
             )
 
-            OutlinedTextField(
-                value = viewModel.rol,
-                onValueChange = {},
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth().clickable {},
-                shape = RoundedCornerShape(50),
-                label = { Text("Rol") },
-                trailingIcon = { Icon(Icons.Default.ArrowDropDown, null) }
+            RolDropdown(
+                selectedRol = viewModel.rol,
+                onRolSelected = { viewModel.rol = it }
             )
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -112,17 +132,78 @@ fun RegistroScreen(
 }
 
 @Composable
-fun RegistroField(value: String, onValueChange: (String) -> Unit, label: String, isPassword: Boolean = false) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = { Text(label, color = Color.Gray) },
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        shape = RoundedCornerShape(50),
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-        colors = OutlinedTextFieldDefaults.colors(
-            unfocusedBorderColor = Color.LightGray,
-            focusedBorderColor = Color(0xFF1A3B7A)
+fun RegistroField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    error: String = "",
+    isPassword: Boolean = false
+) {
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = { Text(label, color = Color.Gray) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            shape = RoundedCornerShape(50),
+            isError = error.isNotEmpty(),
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedBorderColor = Color.LightGray,
+                focusedBorderColor = Color(0xFF1A3B7A)
+            )
         )
-    )
+
+        if (error.isNotEmpty()) {
+            Text(
+                text = error,
+                color = Color.Red,
+                fontSize = 12.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun RolDropdown(
+    selectedRol: String,
+    onRolSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    val roles = listOf("Mentor", "Aprendiz")
+
+    Box {
+
+        OutlinedTextField(
+            value = selectedRol,
+            onValueChange = {},
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = true },
+            label = { Text("Rol") },
+            trailingIcon = {
+                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+            },
+            shape = RoundedCornerShape(50)
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            roles.forEach { rol ->
+                DropdownMenuItem(
+                    text = { Text(rol) },
+                    onClick = {
+                        onRolSelected(rol)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
 }
