@@ -52,8 +52,9 @@ import androidx.compose.ui.geometry.Offset
 @Composable
 fun LoginScreen (viewModel: LoginViewModel,
 onLoginSuccess: () -> Unit,
-onNavigateToRegister: () -> Unit
-) {
+onNavigateToRegister: () -> Unit,
+                 onNavigateToRecovery: () -> Unit
+                 ) {
 
     LaunchedEffect(viewModel.isLoginSuccess) {
         if (viewModel.isLoginSuccess) {
@@ -117,7 +118,7 @@ onNavigateToRegister: () -> Unit
                 )
             )
             TextButton(
-                onClick = { },
+                onClick = { onNavigateToRecovery() },
                 modifier = Modifier.align(Alignment.Start)
             ) {
                 Text("¿Olvidaste tu contraseña?", color = Color.DarkGray, fontSize = 14.sp)
@@ -165,7 +166,8 @@ fun LoginPreview() {
         LoginScreen(
             viewModel = LoginViewModel(),
             onLoginSuccess = {},
-            onNavigateToRegister = {}
+            onNavigateToRegister = {},
+            onNavigateToRecovery = {}
         )
         }
 

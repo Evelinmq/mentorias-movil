@@ -2,6 +2,7 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
 import mx.edu.utez.mentoriasmovil.ui.screen.login.LoginScreen
+import mx.edu.utez.mentoriasmovil.ui.screen.recuperacion.RecuperacionScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.registro.RegistroScreen
 import mx.edu.utez.mentoriasmovil.viewmodel.LoginViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.RegistroViewModel
@@ -21,10 +22,13 @@ fun AppNavigation() {
             LoginScreen(
                 viewModel = loginViewModel,
                 onLoginSuccess = {
-                    println("Login exitoso 🔥")
+                    println("Login exitoso")
                 },
                 onNavigateToRegister = {
                     navController.navigate("registro")
+                },
+                onNavigateToRecovery = {
+                    navController.navigate("recovery")
                 }
             )
         }
@@ -37,6 +41,13 @@ fun AppNavigation() {
                 onBackToLogin = {
                     navController.popBackStack()
                 }
+            )
+        }
+
+        composable("recovery") {
+            RecuperacionScreen(
+                onBack = { navController.popBackStack() },
+                onResend = { println("Reenviar código") }
             )
         }
     }
