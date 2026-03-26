@@ -22,6 +22,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -166,34 +169,37 @@ fun RegistroField(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RolDropdown(
     selectedRol: String,
     onRolSelected: (String) -> Unit
 ) {
+    val roles = listOf("Mentor", "Aprendiz")
     var expanded by remember { mutableStateOf(false) }
 
-    val roles = listOf("Mentor", "Aprendiz")
-
-    Box {
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
 
         OutlinedTextField(
             value = selectedRol,
             onValueChange = {},
             readOnly = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = true },
             label = { Text("Rol") },
             trailingIcon = {
-                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
+            modifier = Modifier
+                .menuAnchor() // 👈 CLAVE
+                .fillMaxWidth(),
             shape = RoundedCornerShape(50)
         )
 
-        DropdownMenu(
+        ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
+            onDismissRequest = { expanded = false }
         ) {
             roles.forEach { rol ->
                 DropdownMenuItem(

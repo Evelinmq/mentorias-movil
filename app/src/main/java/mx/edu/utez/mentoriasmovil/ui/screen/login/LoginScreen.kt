@@ -94,9 +94,10 @@ onNavigateToRegister: () -> Unit,
             OutlinedTextField(
                 value = viewModel.correo,
                 onValueChange = { viewModel.correo = it },
-                placeholder = { Text("Tu usuario", color = Color.Gray) },
+                placeholder = { Text("Tu usuario") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(50),
+                isError = viewModel.errorCorreo.isNotEmpty(),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.LightGray,
                     focusedBorderColor = Color(0xFF1A3B7A)
@@ -115,10 +116,11 @@ onNavigateToRegister: () -> Unit,
             OutlinedTextField(
                 value = viewModel.contrasena,
                 onValueChange = { viewModel.contrasena = it },
-                placeholder = { Text("Tu contraseña", color = Color.Gray) },
+                placeholder = { Text("Tu contraseña") },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(50),
+                isError = viewModel.errorContrasena.isNotEmpty(),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.LightGray,
                     focusedBorderColor = Color(0xFF1A3B7A)
