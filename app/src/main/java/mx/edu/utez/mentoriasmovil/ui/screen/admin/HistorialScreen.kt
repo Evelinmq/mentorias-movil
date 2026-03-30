@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,30 +22,39 @@ import mx.edu.utez.mentoriasmovil.ui.nav.AdminBottomBar
 import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
 
 @Composable
-fun HistorialScreen(paddingValues: PaddingValues) {
+fun HistorialScreen() {
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .background(Color.White)
-    ) {
+    Scaffold(
+        topBar = { MainHeader(onLogout = {}) },
+        bottomBar = {
+            AdminBottomBar(
+                currentRoute = "Historial",
+                onNavigate = {}
+            )
+        }
+    ) { paddingValues ->
 
-        // Buscador fijo arriba
-        SearchBar()
-
-        // Lista con scroll
-        LazyColumn (
-            modifier = Modifier.fillMaxSize()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(Color.White)
         ) {
-            item {
-                MentoriaCard(
-                    fecha = "30/01/2026",
-                    hora = "13:00 - 14:00",
-                    mentor = "Andres Manuel Lopez Obrador",
-                    carrera = "Desarrollo de Software",
-                    materia = "Programación I"
-                )
+
+            SearchBar()
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                item {
+                    MentoriaCard(
+                        fecha = "30/01/2026",
+                        hora = "13:00 - 14:00",
+                        mentor = "Andres Manuel Lopez Obrador",
+                        carrera = "Desarrollo de Software",
+                        materia = "Programación I"
+                    )
+                }
             }
         }
     }
@@ -54,11 +64,6 @@ fun HistorialScreen(paddingValues: PaddingValues) {
 @Composable
 fun HistorialPreview() {
     MentoriasMovilTheme {
-        Scaffold (
-            topBar = { MainHeader (onLogout = {}) },
-            bottomBar = { AdminBottomBar (currentRoute = "Historial", onNavigate = {}) }
-        ) { padding ->
-            HistorialScreen(padding)
-        }
+        HistorialScreen()
     }
 }

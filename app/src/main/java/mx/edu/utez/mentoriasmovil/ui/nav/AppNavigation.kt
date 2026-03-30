@@ -75,9 +75,7 @@ fun AppNavigation() {
         }
 
         composable("admin_home") {
-            Scaffold{
-                paddingValues -> HistorialScreen(paddingValues=paddingValues)
-            }
+            HistorialScreen()
         }
     }
 }
