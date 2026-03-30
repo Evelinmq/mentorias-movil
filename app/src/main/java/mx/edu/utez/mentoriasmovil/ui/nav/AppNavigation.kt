@@ -1,3 +1,4 @@
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
@@ -22,7 +23,17 @@ fun AppNavigation() {
             LoginScreen(
                 viewModel = loginViewModel,
                 onLoginSuccess = {
-                    println("Login exitoso")
+                    when (loginViewModel.userRole) {
+                        "mentor" -> navController.navigate("mentor_home"){
+                            popUpTo("login") { inclusive = true }
+                        }
+                        "aprendiz" -> navController.navigate("aprendiz_home"){
+                            popUpTo("login") { inclusive = true }
+                        }
+                        "admin" -> navController.navigate("admin_home"){
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
                 },
                 onNavigateToRegister = {
                     navController.navigate("registro")
@@ -49,6 +60,17 @@ fun AppNavigation() {
                 onBack = { navController.popBackStack() },
                 onResend = { println("Reenviar código") }
             )
+        }
+        composable("mentor_home") {
+            Text("Pantalla Mentor")
+        }
+
+        composable("aprendiz_home") {
+            Text("Pantalla Aprendiz")
+        }
+
+        composable("admin_home") {
+            Text("Pantalla Admin")
         }
     }
 }

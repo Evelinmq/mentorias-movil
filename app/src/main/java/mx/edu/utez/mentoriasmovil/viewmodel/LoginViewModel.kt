@@ -20,6 +20,7 @@ class LoginViewModel() : ViewModel() {
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf<String?>(null)
     var isLoginSuccess by mutableStateOf(false)
+    var userRole by mutableStateOf("")
 
 
     fun onLoginClick() {
@@ -49,13 +50,27 @@ class LoginViewModel() : ViewModel() {
 
             isLoading = true
 
-            if (correo == "user@utez.edu.mx" && contrasena == "12345") {
-                isLoginSuccess = true
-            } else {
-                errorMessage = "Credenciales incorrectas"
-            }
+            //simulacion de roles
+            when {
+                correo == "mentor@utez.edu.mx" && contrasena == "12345" -> {
+                    userRole = "mentor"
+                    isLoginSuccess = true
+                }
 
-            isLoading = false
+                correo == "aprendiz@utez.edu.mx" && contrasena == "12345" -> {
+                    userRole = "aprendiz"
+                    isLoginSuccess = true
+                }
+
+                correo == "admin@utez.edu.mx" && contrasena == "12345" -> {
+                    userRole = "admin"
+                    isLoginSuccess = true
+                }
+
+                else -> {
+                    errorMessage = "Credenciales incorrectas"
+                }
+            }
         }
     }
 }
