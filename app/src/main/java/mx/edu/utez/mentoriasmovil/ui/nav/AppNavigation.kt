@@ -1,3 +1,5 @@
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -7,6 +9,9 @@ import mx.edu.utez.mentoriasmovil.ui.screen.recuperacion.RecuperacionScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.registro.RegistroScreen
 import mx.edu.utez.mentoriasmovil.viewmodel.LoginViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.RegistroViewModel
+import mx.edu.utez.mentoriasmovil.ui.screen.admin.HistorialScreen
+
+
 
 @Composable
 fun AppNavigation() {
@@ -70,7 +75,9 @@ fun AppNavigation() {
         }
 
         composable("admin_home") {
-            Text("Pantalla Admin")
+            Scaffold{
+                paddingValues -> HistorialScreen(paddingValues=paddingValues)
+            }
         }
     }
 }

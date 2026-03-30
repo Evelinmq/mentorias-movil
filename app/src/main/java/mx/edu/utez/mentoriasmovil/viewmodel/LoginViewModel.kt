@@ -32,44 +32,45 @@ class LoginViewModel() : ViewModel() {
 
             var isValid = true
 
-
             if (correo.isBlank()) {
                 errorCorreo = "El correo es obligatorio"
                 isValid = false
             }
-
 
             if (contrasena.isBlank()) {
                 errorContrasena = "La contraseña es obligatoria"
                 isValid = false
             }
 
-
             if (!isValid) return@launch
-
 
             isLoading = true
 
-            //simulacion de roles
-            when {
-                correo == "mentor@utez.edu.mx" && contrasena == "12345" -> {
-                    userRole = "mentor"
-                    isLoginSuccess = true
+            try {
+
+                when {
+                    correo == "mentor@utez.edu.mx" && contrasena == "12345" -> {
+                        userRole = "mentor"
+                        isLoginSuccess = true
+                    }
+
+                    correo == "aprendiz@utez.edu.mx" && contrasena == "12345" -> {
+                        userRole = "aprendiz"
+                        isLoginSuccess = true
+                    }
+
+                    correo == "admin@utez.edu.mx" && contrasena == "12345" -> {
+                        userRole = "admin"
+                        isLoginSuccess = true
+                    }
+
+                    else -> {
+                        errorMessage = "Credenciales incorrectas"
+                    }
                 }
 
-                correo == "aprendiz@utez.edu.mx" && contrasena == "12345" -> {
-                    userRole = "aprendiz"
-                    isLoginSuccess = true
-                }
-
-                correo == "admin@utez.edu.mx" && contrasena == "12345" -> {
-                    userRole = "admin"
-                    isLoginSuccess = true
-                }
-
-                else -> {
-                    errorMessage = "Credenciales incorrectas"
-                }
+            } finally {
+                isLoading = false
             }
         }
     }
