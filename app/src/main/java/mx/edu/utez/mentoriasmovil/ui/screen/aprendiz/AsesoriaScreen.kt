@@ -35,7 +35,7 @@ val CardBackground = Color(0xFFF1F3F4)
 val PrimaryBlue = Color(0xFF1A3B7A)
 
 @Composable
-fun AsesoriasScreen(paddingValues: PaddingValues) {
+fun AsesoriaScreen(paddingValues: PaddingValues) {
     var asesoriaSeleccionada by remember { mutableStateOf<AsesoriaData?>(null) }
     var mostrarDialogo by remember { mutableStateOf(false) }
 
@@ -297,7 +297,7 @@ fun AsesoriasScreenPreview() {
             topBar = { AprendizHeader(onLogout = {}) },
             bottomBar = { AprendizBottomBar(currentRoute = "Asesorias", onNavigate = {}) }
         ) { padding ->
-            AsesoriasScreen(padding)
+            AsesoriaScreen(padding)
         }
     }
 }

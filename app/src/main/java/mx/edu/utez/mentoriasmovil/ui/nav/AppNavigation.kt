@@ -5,6 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
 import mx.edu.utez.mentoriasmovil.ui.screen.admin.AdminScreenContainer
+import mx.edu.utez.mentoriasmovil.ui.screen.aprendiz.AprendizScreenContainer
+import mx.edu.utez.mentoriasmovil.ui.screen.aprendiz.AsesoriaScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.login.LoginScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.mentor.MentorScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.recuperacion.RecuperacionScreen
@@ -32,7 +34,7 @@ fun AppNavigation() {
                         "mentor" -> navController.navigate("mentor_home"){
                             popUpTo("login") { inclusive = true }
                         }
-                        "aprendiz" -> navController.navigate("aprendiz_home"){
+                        "aprendiz" -> navController.navigate("aprendiz_asesoria"){
                             popUpTo("login") { inclusive = true }
                         }
                         "admin" -> navController.navigate("admin_historial"){
@@ -70,9 +72,6 @@ fun AppNavigation() {
             MentorScreen(navController)
         }
 
-        composable("aprendiz_home") {
-            Text("Pantalla Aprendiz")
-        }
 
         //navegacion dentro de admin
         composable("admin_historial") {
@@ -88,6 +87,19 @@ fun AppNavigation() {
         }
         composable("admin_carreras") {
             AdminScreenContainer("carreras", navController)
+        }
+
+        //navegacion de aprendiz
+        composable("aprendiz_asesoria") {
+            AprendizScreenContainer("aprendiz_asesoria", navController)
+        }
+
+        composable("aprendiz_historial") {
+            AprendizScreenContainer("aprendiz_historial", navController)
+        }
+
+        composable("aprendiz_agregar") {
+            AprendizScreenContainer("aprendiz_agregar", navController)
         }
     }
 }

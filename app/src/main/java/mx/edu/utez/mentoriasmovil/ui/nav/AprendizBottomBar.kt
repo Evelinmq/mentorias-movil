@@ -19,6 +19,12 @@ import mx.edu.utez.mentoriasmovil.ui.theme.header_blue // El azul oscuro que ya 
 
 @Composable
 fun AprendizBottomBar(currentRoute: String, onNavigate: (String) -> Unit) {
+    val routes = listOf(
+        "aprendiz_asesoria",
+        "aprendiz_historial",
+        "aprendiz_agregar"
+    )
+
     val items = listOf("Asesorias", "Historial", "Agregar")
 
     val icons = listOf(
@@ -33,11 +39,10 @@ fun AprendizBottomBar(currentRoute: String, onNavigate: (String) -> Unit) {
         modifier = Modifier.size(height = 80.dp, width = 400.dp)
     ) {
         items.forEachIndexed { index, item ->
-            val isSelected = currentRoute == item
-
+            val isSelected = currentRoute == routes[index]
             NavigationBarItem(
                 selected = isSelected,
-                onClick = { onNavigate(item) },
+                onClick = { onNavigate(routes[index]) },
                 label = {
                     Text(
                         text = item,
