@@ -4,13 +4,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
+import mx.edu.utez.mentoriasmovil.ui.screen.admin.AdminScreenContainer
 import mx.edu.utez.mentoriasmovil.ui.screen.login.LoginScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.recuperacion.RecuperacionScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.registro.RegistroScreen
 import mx.edu.utez.mentoriasmovil.viewmodel.LoginViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.RegistroViewModel
-import mx.edu.utez.mentoriasmovil.ui.screen.admin.HistorialScreen
-
 
 
 @Composable
@@ -35,7 +34,7 @@ fun AppNavigation() {
                         "aprendiz" -> navController.navigate("aprendiz_home"){
                             popUpTo("login") { inclusive = true }
                         }
-                        "admin" -> navController.navigate("admin_home"){
+                        "admin" -> navController.navigate("admin_historial"){
                             popUpTo("login") { inclusive = true }
                         }
                     }
@@ -74,8 +73,20 @@ fun AppNavigation() {
             Text("Pantalla Aprendiz")
         }
 
-        composable("admin_home") {
-            HistorialScreen()
+        //navegacion dentro de admin
+        composable("admin_historial") {
+            AdminScreenContainer("historial", navController)
+        }
+
+        composable("admin_alumnos") {
+            AdminScreenContainer("alumnos", navController)
+        }
+
+        composable("admin_materias") {
+            AdminScreenContainer("materias", navController)
+        }
+        composable("admin_carreras") {
+            AdminScreenContainer("carreras", navController)
         }
     }
 }

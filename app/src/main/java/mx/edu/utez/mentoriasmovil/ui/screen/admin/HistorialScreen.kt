@@ -19,42 +19,30 @@ import mx.edu.utez.mentoriasmovil.ui.components.MainHeader
 import mx.edu.utez.mentoriasmovil.ui.components.admin.bar.SearchBar
 import mx.edu.utez.mentoriasmovil.ui.components.admin.card.MentoriaCard
 import mx.edu.utez.mentoriasmovil.ui.nav.AdminBottomBar
+import mx.edu.utez.mentoriasmovil.ui.screen.aprendiz.HistorialScreen
 import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
 
 @Composable
-fun HistorialScreen() {
+fun HistorialContent(paddingValues: PaddingValues) {
 
-    Scaffold(
-        topBar = { MainHeader(onLogout = {}) },
-        bottomBar = {
-            AdminBottomBar(
-                currentRoute = "Historial",
-                onNavigate = {}
-            )
-        }
-    ) { paddingValues ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .background(Color.White)
+    ) {
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(Color.White)
-        ) {
+        SearchBar()
 
-            SearchBar()
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                item {
-                    MentoriaCard(
-                        fecha = "30/01/2026",
-                        hora = "13:00 - 14:00",
-                        mentor = "Andres Manuel Lopez Obrador",
-                        carrera = "Desarrollo de Software",
-                        materia = "Programación I"
-                    )
-                }
+        LazyColumn {
+            item {
+                MentoriaCard(
+                    fecha = "30/01/2026",
+                    hora = "13:00 - 14:00",
+                    mentor = "Andres Manuel Lopez Obrador",
+                    carrera = "Desarrollo de Software",
+                    materia = "Programación I"
+                )
             }
         }
     }
@@ -64,6 +52,19 @@ fun HistorialScreen() {
 @Composable
 fun HistorialPreview() {
     MentoriasMovilTheme {
-        HistorialScreen()
+
+        Scaffold(
+            topBar = { MainHeader(onLogout = {}) },
+            bottomBar = {
+                AdminBottomBar(
+                    currentRoute = "historial",
+                    onNavigate = {}
+                )
+            }
+        ) { paddingValues ->
+
+            HistorialContent(paddingValues)
+
+        }
     }
 }

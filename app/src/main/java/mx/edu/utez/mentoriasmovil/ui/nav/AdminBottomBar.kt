@@ -14,7 +14,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import mx.edu.utez.mentoriasmovil.R
 import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
 import mx.edu.utez.mentoriasmovil.ui.theme.header_blue
@@ -22,7 +23,12 @@ import mx.edu.utez.mentoriasmovil.ui.theme.header_blue
 @Composable
 fun AdminBottomBar(currentRoute: String, onNavigate: (String) -> Unit) {
     //Opciones
-    val items = listOf("Historial", "Alumnos", "Materias", "Carrera")
+    val items = listOf(
+        "admin_historial" to "Historial",
+        "admin_alumnos" to "Alumnos",
+        "admin_materias" to "Materias",
+        "admin_carreras" to "Carrera"
+    )
     val icons = listOf(
         R.drawable.historialicon,
         R.drawable.usersicon,
@@ -34,19 +40,19 @@ fun AdminBottomBar(currentRoute: String, onNavigate: (String) -> Unit) {
         containerColor = Color.White,
         tonalElevation = 8.dp
     ) {
-        items.forEachIndexed { index, item ->
-            val isSelected = currentRoute == item
+        items.forEachIndexed { index, (route, label) ->
+
+            val isSelected = currentRoute == route
 
             NavigationBarItem(
                 selected = isSelected,
-                onClick = { onNavigate(item) },
-                label = { Text(text = item, fontSize = 10.sp) },
+                onClick = { onNavigate(route) },
+                label = { Text(text = label, fontSize = 10.sp) },
                 icon = {
                     Icon(
                         painter = painterResource(id = icons[index]),
-                        contentDescription = item,
+                        contentDescription = label,
                         modifier = Modifier.size(24.dp),
-                        // Cambiar color al seleccionarse
                         tint = if (isSelected) Color.White else Color.Gray
                     )
                 },

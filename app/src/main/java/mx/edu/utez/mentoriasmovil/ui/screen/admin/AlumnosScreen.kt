@@ -53,7 +53,7 @@ AlumnosScreen(
 @Composable
 fun AlumnosScreen(
     paddingValues: PaddingValues,
-    viendoPendientes: Boolean,
+    viendoPendientes: Boolean = false,
     onToggleVista: () -> Unit = {}
 ) {
 
