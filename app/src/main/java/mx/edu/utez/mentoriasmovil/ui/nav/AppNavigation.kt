@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
 import mx.edu.utez.mentoriasmovil.ui.screen.admin.AdminScreenContainer
 import mx.edu.utez.mentoriasmovil.ui.screen.login.LoginScreen
+import mx.edu.utez.mentoriasmovil.ui.screen.mentor.MentorScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.recuperacion.RecuperacionScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.registro.RegistroScreen
 import mx.edu.utez.mentoriasmovil.viewmodel.LoginViewModel
@@ -66,7 +67,7 @@ fun AppNavigation() {
             )
         }
         composable("mentor_home") {
-            Text("Pantalla Mentor")
+            MentorScreen(navController)
         }
 
         composable("aprendiz_home") {

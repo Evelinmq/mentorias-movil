@@ -36,64 +36,56 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
 import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavController
 
 
 @Composable
-fun MentorScreen() {
+fun MentorScreen(navController: NavController) {
 
     var showAddDialog by remember { mutableStateOf(false) }
-
-    //estado del calendario
     val dateEstado = rememberDatePickerState()
 
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-
-        Spacer(modifier = Modifier.height(34.dp))
-
-        AddButton(onClick = { showAddDialog = true })
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color(0xFFE8E7E7),
-            tonalElevation = 2.dp
-        ) {
-            DatePicker(
-                state = dateEstado,
-                title = null,
-                headline = null,
-                showModeToggle = false
-            )
+    Scaffold(
+        topBar = {
+            MainHeader(onLogout = {
+                navController.navigate("login") {
+                    popUpTo("login") { inclusive = true }
+                }
+            })
         }
+    ) { paddingValues ->
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-
-        val fechaMs = dateEstado.selectedDateMillis
-        if (fechaMs != null) {
-            Text(text = "Fecha seleccionada: ${java.util.Date(fechaMs)}")
-        }
-    }
-
-}
-
-
-
-
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewMentor() {
-    MentoriasMovilTheme {
-        Scaffold (
-            topBar = { MainHeader (onLogout = {})}
-        ) { paddingValues ->
-            Surface(modifier = Modifier
+        Column(
+            modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-                color = MaterialTheme.colorScheme.background) {
-                MentorScreen()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
+        ) {
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            AddButton(onClick = { showAddDialog = true })
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFFE8E7E7),
+                tonalElevation = 2.dp
+            ) {
+                DatePicker(
+                    state = dateEstado,
+                    title = null,
+                    headline = null,
+                    showModeToggle = false
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val fechaMs = dateEstado.selectedDateMillis
+            if (fechaMs != null) {
+                Text(text = "Fecha seleccionada: ${java.util.Date(fechaMs)}")
             }
         }
     }
