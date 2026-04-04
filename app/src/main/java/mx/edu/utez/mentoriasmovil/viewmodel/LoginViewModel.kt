@@ -6,6 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import mx.edu.utez.mentoriasmovil.model.LoginRequest
+import mx.edu.utez.mentoriasmovil.network.RetrofitClient
 import kotlin.onFailure
 import kotlin.onSuccess
 import kotlin.text.isBlank
@@ -48,27 +50,16 @@ class LoginViewModel() : ViewModel() {
 
             try {
 
-                when {
-                    correo == "mentor@utez.edu.mx" && contrasena == "12345" -> {
-                        userRole = "mentor"
-                        isLoginSuccess = true
-                    }
+               val datosLogin = LoginRequest(correo = correo, contrasena = contrasena)
 
-                    correo == "aprendiz@utez.edu.mx" && contrasena == "12345" -> {
-                        userRole = "aprendiz"
-                        isLoginSuccess = true
-                    }
+                val respuesta = RetrofitClient.apiService.login(datosLogin)
 
-                    correo == "admin@utez.edu.mx" && contrasena == "12345" -> {
-                        userRole = "admin"
-                        isLoginSuccess = true
-                    }
-
-                    else -> {
-                        errorMessage = "Credenciales incorrectas"
-                    }
-                }
-
+                userRole = respuesta.role
+                isLoginSuccess = true
+            }catch (e: Exception)
+            {
+                errorMessage = "Correo o contraseña no validos"
+                android.util.Log.e("API_ERROR", e.message ?: "Error desconocido")
             } finally {
                 isLoading = false
             }
