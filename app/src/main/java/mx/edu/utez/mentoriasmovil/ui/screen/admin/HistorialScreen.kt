@@ -12,18 +12,25 @@ import androidx.compose.foundation.verticalScroll
 
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import mx.edu.utez.mentoriasmovil.ui.components.MainHeader
 import mx.edu.utez.mentoriasmovil.ui.components.admin.bar.SearchBar
 import mx.edu.utez.mentoriasmovil.ui.components.admin.card.MentoriaCard
 import mx.edu.utez.mentoriasmovil.ui.nav.AdminBottomBar
 import mx.edu.utez.mentoriasmovil.ui.screen.aprendiz.HistorialScreen
 import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
+import mx.edu.utez.mentoriasmovil.viewmodel.MentoriaViewModel
 
 @Composable
-fun HistorialContent(paddingValues: PaddingValues) {
+fun HistorialContent(paddingValues: PaddingValues, viewModel : MentoriaViewModel = viewModel ()) {
+
+    LaunchedEffect(Unit) {
+        viewModel.obtenerDatos()
+    }
 
     Column(
         modifier = Modifier
@@ -35,13 +42,13 @@ fun HistorialContent(paddingValues: PaddingValues) {
         SearchBar()
 
         LazyColumn {
-            item {
+            items(viewModel.listarMentorias) { mentoria ->
                 MentoriaCard(
-                    fecha = "30/01/2026",
-                    hora = "13:00 - 14:00",
-                    mentor = "Andres Manuel Lopez Obrador",
-                    carrera = "Desarrollo de Software",
-                    materia = "Programación I"
+                    fecha = mentoria.fecha,
+                    hora = "${mentoria.horaInicio}-${mentoria.horaFin}",
+                    mentor = "Mentor: ${mentoria.id}",
+                    carrera = "carrera",
+                    materia = "Cuatrimestre: ${mentoria.cuatrimestre}"
                 )
             }
         }
