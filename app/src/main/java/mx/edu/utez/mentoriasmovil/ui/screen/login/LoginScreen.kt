@@ -51,14 +51,16 @@ import androidx.compose.ui.geometry.Offset
 
 @Composable
 fun LoginScreen (viewModel: LoginViewModel,
-onLoginSuccess: () -> Unit,
+onLoginSuccess: (String) -> Unit,
 onNavigateToRegister: () -> Unit,
                  onNavigateToRecovery: () -> Unit
                  ) {
 
     LaunchedEffect(viewModel.isLoginSuccess) {
         if (viewModel.isLoginSuccess) {
-            onLoginSuccess()
+            val rol = viewModel.userRole.split(",")[0]
+            onLoginSuccess(rol)
+            viewModel.isLoginSuccess = false
         }
     }
     Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
@@ -114,8 +116,8 @@ onNavigateToRegister: () -> Unit,
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = viewModel.contrasena,
-                onValueChange = { viewModel.contrasena = it },
+                value = viewModel.password,
+                onValueChange = { viewModel.password = it },
                 placeholder = { Text("Tu contraseña") },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
@@ -184,7 +186,7 @@ onNavigateToRegister: () -> Unit,
 
 
 
-@Preview(showBackground = true)
+/*@Preview(showBackground = true)
 @Composable
 fun LoginPreview() {
     MentoriasMovilTheme {
@@ -197,5 +199,5 @@ fun LoginPreview() {
         }
 
     }
-
+*/
 

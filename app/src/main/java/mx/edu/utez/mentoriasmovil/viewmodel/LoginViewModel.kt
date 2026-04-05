@@ -1,5 +1,6 @@
 package mx.edu.utez.mentoriasmovil.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -17,7 +18,7 @@ class LoginViewModel() : ViewModel() {
     var errorCorreo by mutableStateOf("")
     var errorContrasena by mutableStateOf("")
     var correo by mutableStateOf("")
-    var contrasena by mutableStateOf("")
+    var password by mutableStateOf("")
 
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf<String?>(null)
@@ -25,7 +26,9 @@ class LoginViewModel() : ViewModel() {
     var userRole by mutableStateOf("")
 
 
+
     fun onLoginClick() {
+
         viewModelScope.launch {
 
             errorCorreo = ""
@@ -39,7 +42,7 @@ class LoginViewModel() : ViewModel() {
                 isValid = false
             }
 
-            if (contrasena.isBlank()) {
+            if (password.isBlank()) {
                 errorContrasena = "La contraseña es obligatoria"
                 isValid = false
             }
@@ -50,16 +53,23 @@ class LoginViewModel() : ViewModel() {
 
             try {
 
-               val datosLogin = LoginRequest(correo = correo, contrasena = contrasena)
+               val datosLogin = LoginRequest(correo = correo, password = password)
 
-                val respuesta = RetrofitClient.apiService.login(datosLogin)
+                val response = RetrofitClient.apiService.login(datosLogin)
 
-                userRole = respuesta.role
-                isLoginSuccess = true
-            }catch (e: Exception)
-            {
-                errorMessage = "Correo o contraseña no validos"
-                android.util.Log.e("API_ERROR", e.message ?: "Error desconocido")
+                if (response.isSuccessful) {
+                    val respuesta = response.body()
+                    userRole = respuesta?.rol ?: ""
+                    isLoginSuccess = true
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    errorMessage = try {
+                        val json = org.json.JSONObject(errorBody ?: "")
+                        json.getString("message")
+                    } catch (e: Exception) {
+                        "Error en login"
+                    }
+                }
             } finally {
                 isLoading = false
             }

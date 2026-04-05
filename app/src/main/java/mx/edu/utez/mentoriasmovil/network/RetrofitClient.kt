@@ -6,12 +6,13 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitClient {
         private const val BASE_URL = ""//ip con el puerto del servidor
 
-        val apiService: apiService by lazy {
-            Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-                .create(apiService::class.java)
-        }
+    private val retrofit: Retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    val apiService: ApiService = retrofit.create(ApiService::class.java)
 
 }

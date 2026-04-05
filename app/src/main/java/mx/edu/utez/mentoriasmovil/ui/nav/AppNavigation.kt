@@ -17,6 +17,7 @@ import mx.edu.utez.mentoriasmovil.viewmodel.RegistroViewModel
 
 @Composable
 fun AppNavigation() {
+
     val navController = rememberNavController()
 
     NavHost(
@@ -29,25 +30,21 @@ fun AppNavigation() {
 
             LoginScreen(
                 viewModel = loginViewModel,
-                onLoginSuccess = {
-                    when (loginViewModel.userRole) {
-                        "mentor" -> navController.navigate("mentor_home"){
-                            popUpTo("login") { inclusive = true }
-                        }
-                        "aprendiz" -> navController.navigate("aprendiz_asesoria"){
-                            popUpTo("login") { inclusive = true }
-                        }
-                        "admin" -> navController.navigate("admin_historial"){
-                            popUpTo("login") { inclusive = true }
-                        }
+                onLoginSuccess = { rol ->
+                    val destination = when (rol) {
+                        "mentor" -> "mentor_home"
+                        "aprendiz" -> "aprendiz_asesoria"
+                        "admin" -> "admin_historial"
+                        else -> "login"
+                    }
+
+                    navController.navigate(destination) {
+                        popUpTo("login") { inclusive = true }
+                        launchSingleTop = true
                     }
                 },
-                onNavigateToRegister = {
-                    navController.navigate("registro")
-                },
-                onNavigateToRecovery = {
-                    navController.navigate("recovery")
-                }
+                onNavigateToRegister = { navController.navigate("registro") },
+                onNavigateToRecovery = { navController.navigate("recovery") }
             )
         }
 
