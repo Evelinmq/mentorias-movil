@@ -57,9 +57,17 @@ onNavigateToRegister: () -> Unit,
                  ) {
 
     LaunchedEffect(viewModel.isLoginSuccess) {
+        println("LOGIN SUCCESS: ${viewModel.isLoginSuccess}")
+        println("ROL RAW: ${viewModel.userRole}")
+
         if (viewModel.isLoginSuccess) {
-            val rol = viewModel.userRole.split(",")[0]
-            onLoginSuccess(rol)
+            val rolLimpio = viewModel.userRole
+                .lowercase()
+                .replace("role_", "")
+
+            println("ROL LIMPIO: $rolLimpio")
+
+            onLoginSuccess(rolLimpio)
             viewModel.isLoginSuccess = false
         }
     }

@@ -31,11 +31,17 @@ fun AppNavigation() {
             LoginScreen(
                 viewModel = loginViewModel,
                 onLoginSuccess = { rol ->
-                    val destination = when (rol) {
+
+                    val rolFinal = rol.trim().lowercase()
+
+                    val destination = when (rolFinal) {
                         "mentor" -> "mentor_home"
-                        "aprendiz" -> "aprendiz_asesoria"
-                        "admin" -> "admin_historial"
-                        else -> "login"
+                        "aprendiz", "alumno" -> "aprendiz_asesoria"
+                        "admin", "administrador" -> "admin_historial"
+                        else -> {
+                            println("ROL NO RECONOCIDO: $rolFinal")
+                            "login"
+                        }
                     }
 
                     navController.navigate(destination) {
