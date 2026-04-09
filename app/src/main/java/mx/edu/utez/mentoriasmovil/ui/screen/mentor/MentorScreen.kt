@@ -1,21 +1,15 @@
 package mx.edu.utez.mentoriasmovil.ui.screen.mentor
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
@@ -59,8 +53,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import mx.edu.utez.mentoriasmovil.model.Edificio
 import mx.edu.utez.mentoriasmovil.model.Espacio
+import mx.edu.utez.mentoriasmovil.model.Materia
 import mx.edu.utez.mentoriasmovil.viewmodel.EdificioViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.EspacioViewModel
+import mx.edu.utez.mentoriasmovil.viewmodel.MateriaViewModel
+
 
 
 @Composable
@@ -152,7 +149,14 @@ fun AgregarMentoriaDialog(
 
     var aulaSeleccionada by remember { mutableStateOf<Espacio?>(null) }
     var expandedAula by remember { mutableStateOf(false) }
+//materia y cuatris backend
 
+    val materiaViewModel: MateriaViewModel = viewModel()
+    LaunchedEffect(Unit) {
+        materiaViewModel.obtenerMaterias()
+    }
+    var materiaSeleccionada by remember { mutableStateOf<Materia?>(null) }
+    var expandedMateria by remember { mutableStateOf(false) }
 
     // ------------------ STATES ------------------
     var horaInicio by remember { mutableStateOf("") }
@@ -244,33 +248,48 @@ fun AgregarMentoriaDialog(
 
                 // -------- CUATRIMESTRE --------
                 OutlinedTextField(
-                    value = cuatrimestre,
-                    onValueChange = {
-                        cuatrimestre = it
-                        errorCuatrimestre = ""
-                    },
+                    value = materiaSeleccionada?.cuatrimestre?.toString() ?: "",
+                    onValueChange = {},
+                    readOnly = true,
                     label = { Text("Cuatrimestre") },
-                    isError = errorCuatrimestre.isNotEmpty(),
-                    supportingText = {
-                        if (errorCuatrimestre.isNotEmpty()) Text(errorCuatrimestre)
-                    },
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 // -------- MATERIA --------
-                OutlinedTextField(
-                    value = materia,
-                    onValueChange = {
-                        materia = it
-                        errorMateria = ""
-                    },
-                    label = { Text("Materia ID") },
-                    isError = errorMateria.isNotEmpty(),
-                    supportingText = {
-                        if (errorMateria.isNotEmpty()) Text(errorMateria)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                ExposedDropdownMenuBox(
+                    expanded = expandedMateria,
+                    onExpandedChange = { expandedMateria = !expandedMateria }
+                ) {
+
+                    OutlinedTextField(
+                        value = materiaSeleccionada?.nombre ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Materia") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedMateria)
+                        },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expandedMateria,
+                        onDismissRequest = { expandedMateria = false }
+                    ) {
+                        materiaViewModel.listaMaterias.forEach { materia ->
+
+                            DropdownMenuItem(
+                                text = { Text(materia.nombre ?: "") },
+                                onClick = {
+                                    materiaSeleccionada = materia
+                                    expandedMateria = false
+                                }
+                            )
+                        }
+                    }
+                }
 
                 // -------- AULA --------
                 ExposedDropdownMenuBox(
