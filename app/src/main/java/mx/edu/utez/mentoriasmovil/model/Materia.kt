@@ -5,5 +5,6 @@ class Materia (
     val nombre: String?= "",
     val cuatrimestre: Int? = 0,
     val carreraNombre : String? = "",
+    val carreraId : Long? = null
 
 )

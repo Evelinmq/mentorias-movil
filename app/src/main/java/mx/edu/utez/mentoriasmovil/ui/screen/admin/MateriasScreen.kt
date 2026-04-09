@@ -60,7 +60,9 @@ fun MateriasScreen(paddingValues: PaddingValues, viewModel: MateriaViewModel = v
         MateriaDialog(
             isEdit = false,
             onDismiss = { showAddDialog = false },
-            onConfirm = { c, m, cu ->
+            onConfirm = { nombre, carrera, cuatri ->
+                val cuatriInt = cuatri.toIntOrNull() ?: 0
+                viewModel.agregarMateria(nombre, cuatriInt)
                 showAddDialog = false
             }
         )
@@ -73,7 +75,12 @@ fun MateriasScreen(paddingValues: PaddingValues, viewModel: MateriaViewModel = v
             initialCarrera = materiaSeleccionada?.carreraNombre ?: "",
             initialCuatri = materiaSeleccionada?.cuatrimestre?.toString() ?: "",
             onDismiss = { showEditDialog = false },
-            onConfirm = { c, m, cu ->
+            onConfirm = { nombre, carrera, cuatri ->
+                val id = materiaSeleccionada?.id
+                val cuatriInt = cuatri.toIntOrNull() ?: 0
+                if (id != null) {
+                    viewModel.editarMateria(id, nombre, cuatriInt)
+                }
                 showEditDialog = false
             }
         )
@@ -85,7 +92,7 @@ fun MateriasScreen(paddingValues: PaddingValues, viewModel: MateriaViewModel = v
             message = "¿Deseas eliminar '${materiaSeleccionada?.nombre}'?",
             onDismiss = { showDeleteConfirm = false },
             onConfirm = {
-                materiaSeleccionada?.id?.let { viewModel.eliminar(it) }
+                materiaSeleccionada?.id?.let { viewModel.eliminarMateria(it) }
                 showDeleteConfirm = false
             }
         )

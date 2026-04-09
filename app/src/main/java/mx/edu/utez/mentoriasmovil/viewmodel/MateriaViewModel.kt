@@ -28,14 +28,35 @@ class MateriaViewModel : ViewModel() {
         }
     }
 
-    fun eliminar(id: Long) {
+    fun agregarMateria(nombre: String, cuatrimestre: Int) {
+        viewModelScope.launch {
+            try {
+
+                val nueva = Materia(nombre = nombre, cuatrimestre = cuatrimestre, carreraId = 1)
+                val response = RetrofitClient.apiService.crearMateria(nueva)
+                if (response.isSuccessful) obtenerMaterias()
+            } catch (e: Exception) { Log.e("API", "Error al crear: ${e.message}") }
+        }
+    }
+
+
+    fun editarMateria(id: Long, nombre: String, cuatrimestre: Int) {
+        viewModelScope.launch {
+            try {
+                val editada = Materia(id = id, nombre = nombre, cuatrimestre = cuatrimestre, carreraId = 1)
+                val response = RetrofitClient.apiService.actualizarMateria(id, editada)
+                if (response.isSuccessful) obtenerMaterias()
+            } catch (e: Exception) { Log.e("API", "Error al editar: ${e.message}") }
+        }
+    }
+
+
+    fun eliminarMateria(id: Long) {
         viewModelScope.launch {
             try {
                 val response = RetrofitClient.apiService.eliminarMateria(id)
                 if (response.isSuccessful) obtenerMaterias()
-            } catch (e: Exception) {
-                Log.e("MATERIA_VM", "Error al borrar: ${e.message}")
-            }
+            } catch (e: Exception) { Log.e("API", "Error al eliminar: ${e.message}") }
         }
     }
 }
