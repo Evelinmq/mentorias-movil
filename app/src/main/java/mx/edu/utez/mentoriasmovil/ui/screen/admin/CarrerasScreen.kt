@@ -34,42 +34,54 @@ import androidx.compose.runtime.setValue
 import mx.edu.utez.mentoriasmovil.ui.components.admin.modal.CarreraDialog
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.edu.utez.mentoriasmovil.model.Carrera
+import mx.edu.utez.mentoriasmovil.ui.components.ConfirmDialog
+import mx.edu.utez.mentoriasmovil.ui.components.admin.card.MateriaCard
+import mx.edu.utez.mentoriasmovil.viewmodel.CarreraViewModel
+import mx.edu.utez.mentoriasmovil.viewmodel.MateriaViewModel
+
+
 
 @Composable
-fun CarrerasScreen(paddingValues: PaddingValues) {
+fun CarrerasScreen(paddingValues: PaddingValues, viewModel: CarreraViewModel = viewModel()) {
 
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
-    var carreraSeleccionada by remember { mutableStateOf("Desarrollo de Software") }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var carreraSeleccionada by remember { mutableStateOf<Carrera?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.obtenerCarreras()
+    }
 
     if (showAddDialog) {
         CarreraDialog(
             isEdit = false,
             onDismiss = { showAddDialog = false },
-            onConfirm = { nueva ->
-                println("Guardando nueva carrera: $nueva")
+            onConfirm = { nombre ->
+                viewModel.agregarCarrera(nombre)
                 showAddDialog = false
             }
         )
     }
 
-    if (showEditDialog) {
+    if (showEditDialog && carreraSeleccionada != null) {
         CarreraDialog(
             isEdit = true,
-            initialText = carreraSeleccionada,
+            initialText = carreraSeleccionada?.nombre ?: "",
             onDismiss = { showEditDialog = false },
-            onConfirm = { editada ->
-                carreraSeleccionada = editada
+            onConfirm = { nombre ->
+                carreraSeleccionada?.id?.let { id ->
+                    viewModel.editarCarrera(
+                        id,
+                        nombre)
+                }
                 showEditDialog = false
             }
         )
     }
-
-    val listaCarreras = listOf(
-        "Desarrollo de Software",
-        "Diseño Digital",
-        "Ciberseguridad"
-    )
 
     LazyColumn(
         modifier = Modifier
@@ -103,11 +115,11 @@ fun CarrerasScreen(paddingValues: PaddingValues) {
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        items(listaCarreras) { nombre ->
+        items(viewModel.listaCarreras) { carrera ->
             CarreraCard(
-                nombreCarrera = nombre,
+                          nombreCarrera = carrera.nombre ?: "Sin carrera",
                 onEditClick = {
-                    carreraSeleccionada = nombre
+                    carreraSeleccionada = carrera
                     showEditDialog = true
                 }
             )

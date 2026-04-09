@@ -34,6 +34,7 @@ fun CarreraCard(
 
     BaseCard(
         onEditClick = onEditClick
+
     ) {
         Text(
             text = "Carrera:",
