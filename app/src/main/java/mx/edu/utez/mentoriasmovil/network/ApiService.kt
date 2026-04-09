@@ -2,6 +2,7 @@ package mx.edu.utez.mentoriasmovil.network
 
 import mx.edu.utez.mentoriasmovil.model.Carrera
 import mx.edu.utez.mentoriasmovil.model.Edificio
+import mx.edu.utez.mentoriasmovil.model.Espacio
 import mx.edu.utez.mentoriasmovil.model.LoginRequest
 import mx.edu.utez.mentoriasmovil.model.LoginResponse
 import mx.edu.utez.mentoriasmovil.model.Materia
@@ -48,4 +49,7 @@ interface ApiService {
 
     @GET("api/edificios")
     suspend fun listarEdificios(): List<Edificio>
+
+    @GET("api/espacios")
+    suspend fun getEspacios(): List<Espacio>
 }

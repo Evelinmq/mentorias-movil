@@ -58,7 +58,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import mx.edu.utez.mentoriasmovil.model.Edificio
+import mx.edu.utez.mentoriasmovil.model.Espacio
 import mx.edu.utez.mentoriasmovil.viewmodel.EdificioViewModel
+import mx.edu.utez.mentoriasmovil.viewmodel.EspacioViewModel
 
 
 @Composable
@@ -140,6 +142,16 @@ fun AgregarMentoriaDialog(
     }
     var edificioSeleccionado by remember { mutableStateOf<Edificio?>(null) }
     var expanded by remember { mutableStateOf(false) }
+
+    //aulas backend
+    val espacioViewModel: EspacioViewModel = viewModel()
+
+    LaunchedEffect(Unit) {
+        espacioViewModel.obtenerEspacios()
+    }
+
+    var aulaSeleccionada by remember { mutableStateOf<Espacio?>(null) }
+    var expandedAula by remember { mutableStateOf(false) }
 
 
     // ------------------ STATES ------------------
@@ -261,19 +273,40 @@ fun AgregarMentoriaDialog(
                 )
 
                 // -------- AULA --------
-                OutlinedTextField(
-                    value = aula,
-                    onValueChange = {
-                        aula = it
-                        errorAula = ""
-                    },
-                    label = { Text("Aula") },
-                    isError = errorAula.isNotEmpty(),
-                    supportingText = {
-                        if (errorAula.isNotEmpty()) Text(errorAula)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                ExposedDropdownMenuBox(
+                    expanded = expandedAula,
+                    onExpandedChange = { expandedAula = !expandedAula }
+                ) {
+
+                    OutlinedTextField(
+                        value = aulaSeleccionada?.nombre ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Aula") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedAula)
+                        },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expandedAula,
+                        onDismissRequest = { expandedAula = false }
+                    ) {
+
+                        espacioViewModel.espacios.forEach { espacio ->
+                            DropdownMenuItem(
+                                text = { Text(espacio.nombre) },
+                                onClick = {
+                                    aulaSeleccionada = espacio
+                                    expandedAula = false
+                                }
+                            )
+                        }
+                    }
+                }
 
                 // -------- EDIFICIO --------
                 ExposedDropdownMenuBox(
@@ -290,7 +323,7 @@ fun AgregarMentoriaDialog(
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                         },
                         modifier = Modifier
-                            .menuAnchor() // 👈 IMPORTANTÍSIMO
+                            .menuAnchor()
                             .fillMaxWidth()
                     )
 
