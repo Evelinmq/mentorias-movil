@@ -2,6 +2,9 @@ package mx.edu.utez.mentoriasmovil.ui.screen.mentor
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,12 +17,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,7 +56,7 @@ import androidx.navigation.NavController
 @Composable
 fun MentorScreen(navController: NavController) {
 
-    var showAddDialog by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
     val dateEstado = rememberDatePickerState()
 
     Scaffold(
@@ -64,7 +78,16 @@ fun MentorScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            AddButton(onClick = { showAddDialog = true })
+            // BOTÓN AGREGAR
+            AddButton(onClick = { showDialog = true })
+
+            if (showDialog) {
+                AgregarMentoriaDialog(
+                    fechaSeleccionada = dateEstado.selectedDateMillis,
+                    onDismiss = { showDialog = false },
+                    onGuardar = { /* luego backend */ }
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -85,8 +108,295 @@ fun MentorScreen(navController: NavController) {
 
             val fechaMs = dateEstado.selectedDateMillis
             if (fechaMs != null) {
-                Text(text = "Fecha seleccionada: ${java.util.Date(fechaMs)}")
+                val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                val fechaFormateada = sdf.format(java.util.Date(fechaMs))
+
+                Text(text = "Fecha seleccionada: $fechaFormateada")
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AgregarMentoriaDialog(
+    fechaSeleccionada: Long?,
+    onDismiss: () -> Unit,
+    onGuardar: () -> Unit
+) {
+
+    // ------------------ STATES ------------------
+    var horaInicio by remember { mutableStateOf("") }
+    var horaFin by remember { mutableStateOf("") }
+    var cuatrimestre by remember { mutableStateOf("") }
+    var materia by remember { mutableStateOf("") }
+    var aula by remember { mutableStateOf("") }
+    var edificio by remember { mutableStateOf("") }
+
+    // TimePickers
+    var showTimePickerInicio by remember { mutableStateOf(false) }
+    var showTimePickerFin by remember { mutableStateOf(false) }
+
+    // ERRORES
+    var errorFecha by remember { mutableStateOf("") }
+    var errorHoraInicio by remember { mutableStateOf("") }
+    var errorHoraFin by remember { mutableStateOf("") }
+    var errorCuatrimestre by remember { mutableStateOf("") }
+    var errorMateria by remember { mutableStateOf("") }
+    var errorAula by remember { mutableStateOf("") }
+    var errorEdificio by remember { mutableStateOf("") }
+
+    // ------------------ FECHA ------------------
+    val fechaFormateada = remember(fechaSeleccionada) {
+        fechaSeleccionada?.let {
+            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+            sdf.format(java.util.Date(it))
+        } ?: ""
+    }
+
+    // ------------------ UI ------------------
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {},
+        dismissButton = {},
+        title = { Text("Agregar mentoría") },
+        text = {
+
+            Column {
+
+                // -------- FECHA --------
+                OutlinedTextField(
+                    value = fechaFormateada,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Fecha") },
+                    isError = errorFecha.isNotEmpty(),
+                    supportingText = {
+                        if (errorFecha.isNotEmpty()) Text(errorFecha)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // -------- HORA INICIO --------
+                OutlinedTextField(
+                    value = horaInicio,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Hora inicio") },
+                    trailingIcon = {
+                        IconButton(onClick = { showTimePickerInicio = true }) {
+                            Icon(Icons.Default.AccessTime, contentDescription = null)
+                        }
+                    },
+                    isError = errorHoraInicio.isNotEmpty(),
+                    supportingText = {
+                        if (errorHoraInicio.isNotEmpty()) Text(errorHoraInicio)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // -------- HORA FIN --------
+                OutlinedTextField(
+                    value = horaFin,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Hora fin") },
+                    trailingIcon = {
+                        IconButton(onClick = { showTimePickerFin = true }) {
+                            Icon(Icons.Default.AccessTime, contentDescription = null)
+                        }
+                    },
+                    isError = errorHoraFin.isNotEmpty(),
+                    supportingText = {
+                        if (errorHoraFin.isNotEmpty()) Text(errorHoraFin)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // -------- CUATRIMESTRE --------
+                OutlinedTextField(
+                    value = cuatrimestre,
+                    onValueChange = {
+                        cuatrimestre = it
+                        errorCuatrimestre = ""
+                    },
+                    label = { Text("Cuatrimestre") },
+                    isError = errorCuatrimestre.isNotEmpty(),
+                    supportingText = {
+                        if (errorCuatrimestre.isNotEmpty()) Text(errorCuatrimestre)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // -------- MATERIA --------
+                OutlinedTextField(
+                    value = materia,
+                    onValueChange = {
+                        materia = it
+                        errorMateria = ""
+                    },
+                    label = { Text("Materia ID") },
+                    isError = errorMateria.isNotEmpty(),
+                    supportingText = {
+                        if (errorMateria.isNotEmpty()) Text(errorMateria)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // -------- AULA --------
+                OutlinedTextField(
+                    value = aula,
+                    onValueChange = {
+                        aula = it
+                        errorAula = ""
+                    },
+                    label = { Text("Aula") },
+                    isError = errorAula.isNotEmpty(),
+                    supportingText = {
+                        if (errorAula.isNotEmpty()) Text(errorAula)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // -------- EDIFICIO --------
+                OutlinedTextField(
+                    value = edificio,
+                    onValueChange = {
+                        edificio = it
+                        errorEdificio = ""
+                    },
+                    label = { Text("Edificio") },
+                    isError = errorEdificio.isNotEmpty(),
+                    supportingText = {
+                        if (errorEdificio.isNotEmpty()) Text(errorEdificio)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // -------- BOTONES --------
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancelar")
+                    }
+
+                    Button(
+                        onClick = {
+
+                            var isValid = true
+
+                            if (fechaFormateada.isBlank()) {
+                                errorFecha = "Selecciona una fecha"
+                                isValid = false
+                            }
+
+                            if (horaInicio.isBlank()) {
+                                errorHoraInicio = "Campo obligatorio"
+                                isValid = false
+                            }
+
+                            if (horaFin.isBlank()) {
+                                errorHoraFin = "Campo obligatorio"
+                                isValid = false
+                            }
+
+                            // 🔥 VALIDACIÓN EXTRA (PRO)
+                            if (horaInicio.isNotBlank() && horaFin.isNotBlank()) {
+                                if (horaFin <= horaInicio) {
+                                    errorHoraFin = "Debe ser mayor a hora inicio"
+                                    isValid = false
+                                }
+                            }
+
+                            if (cuatrimestre.isBlank()) {
+                                errorCuatrimestre = "Campo obligatorio"
+                                isValid = false
+                            }
+
+                            if (materia.isBlank()) {
+                                errorMateria = "Campo obligatorio"
+                                isValid = false
+                            }
+
+                            if (aula.isBlank()) {
+                                errorAula = "Campo obligatorio"
+                                isValid = false
+                            }
+
+                            if (edificio.isBlank()) {
+                                errorEdificio = "Campo obligatorio"
+                                isValid = false
+                            }
+
+                            if (!isValid) return@Button
+
+                            onGuardar()
+                            onDismiss()
+                        }
+                    ) {
+                        Text("Guardar")
+                    }
+                }
+            }
+        }
+    )
+
+    // ------------------ TIME PICKER INICIO ------------------
+    if (showTimePickerInicio) {
+
+        val timeState = rememberTimePickerState()
+
+        AlertDialog(
+            onDismissRequest = { showTimePickerInicio = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    horaInicio = String.format("%02d:%02d", timeState.hour, timeState.minute)
+                    showTimePickerInicio = false
+                    errorHoraInicio = ""
+                }) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePickerInicio = false }) {
+                    Text("Cancelar")
+                }
+            },
+            text = {
+                TimePicker(state = timeState)
+            }
+        )
+    }
+
+    // ------------------ TIME PICKER FIN ------------------
+    if (showTimePickerFin) {
+
+        val timeState = rememberTimePickerState()
+
+        AlertDialog(
+            onDismissRequest = { showTimePickerFin = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    horaFin = String.format("%02d:%02d", timeState.hour, timeState.minute)
+                    showTimePickerFin = false
+                    errorHoraFin = ""
+                }) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePickerFin = false }) {
+                    Text("Cancelar")
+                }
+            },
+            text = {
+                TimePicker(state = timeState)
+            }
+        )
     }
 }
