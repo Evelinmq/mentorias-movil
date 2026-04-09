@@ -1,6 +1,7 @@
 package mx.edu.utez.mentoriasmovil.network
 
 import mx.edu.utez.mentoriasmovil.model.Carrera
+import mx.edu.utez.mentoriasmovil.model.Edificio
 import mx.edu.utez.mentoriasmovil.model.LoginRequest
 import mx.edu.utez.mentoriasmovil.model.LoginResponse
 import mx.edu.utez.mentoriasmovil.model.Materia
@@ -45,4 +46,6 @@ interface ApiService {
     @DELETE("api/carreras/{id}")
     suspend fun eliminarCarrera(@Path("id") id: Long): Response<Unit>
 
+    @GET("api/edificios")
+    suspend fun listarEdificios(): List<Edificio>
 }
