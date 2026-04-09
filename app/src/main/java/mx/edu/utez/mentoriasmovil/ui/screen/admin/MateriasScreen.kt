@@ -2,7 +2,6 @@ package mx.edu.utez.mentoriasmovil.ui.screen.admin
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -35,9 +32,13 @@ import mx.edu.utez.mentoriasmovil.ui.nav.AdminBottomBar
 import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.edu.utez.mentoriasmovil.model.Materia
+import mx.edu.utez.mentoriasmovil.viewmodel.MateriaViewModel
 
 @Composable
-fun MateriasScreen(paddingValues: PaddingValues) {
+fun MateriasScreen(paddingValues: PaddingValues, viewModel: MateriaViewModel = viewModel()) {
     // Estados para los modales
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
@@ -46,7 +47,13 @@ fun MateriasScreen(paddingValues: PaddingValues) {
     var itemAEliminar by remember { mutableStateOf("") }
 
     // Estado para saber qué materia se está editando
-    var materiaSeleccionada by remember { mutableStateOf("") }
+    var materiaSeleccionada by remember { mutableStateOf<Materia?>(null) }
+
+
+    LaunchedEffect(Unit) {
+        viewModel.obtenerMaterias()
+    }
+
 
     // --- DIÁLOGOS ---
     if (showAddDialog) {
@@ -62,7 +69,9 @@ fun MateriasScreen(paddingValues: PaddingValues) {
     if (showEditDialog) {
         MateriaDialog(
             isEdit = true,
-            initialMateria = materiaSeleccionada,
+            initialMateria = materiaSeleccionada?.nombre ?: "",
+            initialCarrera = materiaSeleccionada?.carreraNombre ?: "",
+            initialCuatri = materiaSeleccionada?.cuatrimestre?.toString() ?: "",
             onDismiss = { showEditDialog = false },
             onConfirm = { c, m, cu ->
                 showEditDialog = false
@@ -70,22 +79,18 @@ fun MateriasScreen(paddingValues: PaddingValues) {
         )
     }
 
-    if (showDeleteConfirm) {
+    if (showDeleteConfirm && materiaSeleccionada != null) {
         ConfirmDialog(
             title = "Eliminar Materia",
-            message = "¿Eliminar la materia '$itemAEliminar'? Esta acción no se puede deshacer.",
+            message = "¿Deseas eliminar '${materiaSeleccionada?.nombre}'?",
             onDismiss = { showDeleteConfirm = false },
             onConfirm = {
-                println("Eliminando $itemAEliminar...")
+                materiaSeleccionada?.id?.let { viewModel.eliminar(it) }
                 showDeleteConfirm = false
             }
         )
     }
 
-    val listaMaterias = listOf(
-        Triple("Desarrollo de Software", "Programación I", "5"),
-        Triple("Desarrollo de Software", "Base de Datos", "4")
-    )
 
     LazyColumn(
         modifier = Modifier
@@ -118,17 +123,17 @@ fun MateriasScreen(paddingValues: PaddingValues) {
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        items(listaMaterias) { (carrera, materia, cuatri) ->
+        items(viewModel.listaMaterias) { materia ->
             MateriaCard(
-                carrera = carrera,
-                materia = materia,
-                cuatrimestre = cuatri,
+                carrera = materia.carreraNombre ?: "Sin carrera" ,
+                materia = materia.nombre ?: "Sin nombres",
+                cuatrimestre = (materia.cuatrimestre ?: 0).toString(),
                 onEditClick = {
                     materiaSeleccionada = materia
                     showEditDialog = true
                 },
                 onDeleteClick = {
-                    itemAEliminar = materia
+                    materiaSeleccionada = materia
                     showDeleteConfirm = true
                 }
             )

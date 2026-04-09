@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import mx.edu.utez.mentoriasmovil.model.Materia
 import mx.edu.utez.mentoriasmovil.ui.theme.card_grey
 
 @Composable

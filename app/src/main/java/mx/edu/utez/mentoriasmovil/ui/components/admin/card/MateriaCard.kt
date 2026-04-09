@@ -9,13 +9,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import mx.edu.utez.mentoriasmovil.ui.theme.button_grey
-import mx.edu.utez.mentoriasmovil.ui.theme.text_card_grey
 
 @Composable
 fun MateriaCard(
     carrera: String,
-    materia: String,
+    materia: String?,
     cuatrimestre: String,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
