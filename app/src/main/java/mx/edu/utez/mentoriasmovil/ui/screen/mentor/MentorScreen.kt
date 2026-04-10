@@ -1,5 +1,7 @@
 package mx.edu.utez.mentoriasmovil.ui.screen.mentor
 
+import android.R.attr.onClick
+import android.util.Log
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.foundation.layout.Arrangement
@@ -57,7 +59,7 @@ import mx.edu.utez.mentoriasmovil.model.Materia
 import mx.edu.utez.mentoriasmovil.viewmodel.EdificioViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.EspacioViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.MateriaViewModel
-
+import mx.edu.utez.mentoriasmovil.viewmodel.MentoriaViewModel
 
 
 @Composable
@@ -65,6 +67,26 @@ fun MentorScreen(navController: NavController) {
 
     var showDialog by remember { mutableStateOf(false) }
     val dateEstado = rememberDatePickerState()
+
+    // ✅ ViewModel ARRIBA
+    val mentoriaViewModel: MentoriaViewModel = viewModel()
+
+    // ✅ CARGA INICIAL
+    LaunchedEffect(Unit) {
+        mentoriaViewModel.obtenerDatos()
+    }
+
+    val fechaMs = dateEstado.selectedDateMillis
+
+    // ✅ FILTRO POR FECHA
+    LaunchedEffect(fechaMs) {
+        fechaMs?.let {
+            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+            val fechaFormateada = sdf.format(java.util.Date(it))
+
+            mentoriaViewModel.filtrarPorFecha(fechaFormateada)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -92,12 +114,13 @@ fun MentorScreen(navController: NavController) {
                 AgregarMentoriaDialog(
                     fechaSeleccionada = dateEstado.selectedDateMillis,
                     onDismiss = { showDialog = false },
-                    onGuardar = { /* luego backend */ }
+                    onGuardar = {}
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // CALENDARIO
             Surface(
                 shape = RoundedCornerShape(16.dp),
                 color = Color(0xFFE8E7E7),
@@ -113,7 +136,29 @@ fun MentorScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            val fechaMs = dateEstado.selectedDateMillis
+            // ✅ LISTA DE MENTORÍAS
+            val mentorias = mentoriaViewModel.mentoriasFiltradas
+
+            mentorias.forEach { mentoria ->
+
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    tonalElevation = 2.dp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+
+                        Text(text = "Materia: ${mentoria.materia}")
+                        Text(text = "Hora: ${mentoria.horaInicio} - ${mentoria.horaFin}")
+                        Text(text = "Cupo: ${mentoria.cupo}")
+
+                    }
+                }
+            }
+
+            // FECHA SELECCIONADA
             if (fechaMs != null) {
                 val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
                 val fechaFormateada = sdf.format(java.util.Date(fechaMs))
@@ -131,6 +176,8 @@ fun AgregarMentoriaDialog(
     onDismiss: () -> Unit,
     onGuardar: () -> Unit
 ) {
+
+    val mentoriaViewModel: MentoriaViewModel = viewModel()
 //edificio backend
     val viewModel: EdificioViewModel = viewModel()
 
@@ -374,6 +421,7 @@ fun AgregarMentoriaDialog(
 
                     Button(
                         onClick = {
+                            Log.d("TEST_CLICK", "BOTON FUNCIONA")
 
                             var isValid = true
 
@@ -399,29 +447,34 @@ fun AgregarMentoriaDialog(
                                 }
                             }
 
-                            if (cuatrimestre.isBlank()) {
-                                errorCuatrimestre = "Campo obligatorio"
+                            if (materiaSeleccionada == null) {
+                                errorMateria = "Selecciona una materia"
                                 isValid = false
                             }
 
-                            if (materia.isBlank()) {
-                                errorMateria = "Campo obligatorio"
+                            if (aulaSeleccionada == null) {
+                                errorAula = "Selecciona un aula"
                                 isValid = false
                             }
 
-                            if (aula.isBlank()) {
-                                errorAula = "Campo obligatorio"
-                                isValid = false
-                            }
-
-                            if (edificio.isBlank()) {
-                                errorEdificio = "Campo obligatorio"
+                            if (edificioSeleccionado == null) {
+                                errorEdificio = "Selecciona un edificio"
                                 isValid = false
                             }
 
                             if (!isValid) return@Button
 
-                            onGuardar()
+                            mentoriaViewModel.crearMentoria(
+                                fecha = fechaFormateada,
+                                horaInicio = horaInicio,
+                                horaFin = horaFin,
+                                cuatrimestre =  materiaSeleccionada?.cuatrimestre ?: 0,
+                                cupo = 10,
+                                materiaId = materiaSeleccionada?.id ?: 0,
+                                espacioId = aulaSeleccionada?.id ?: 0,
+                                mentorId = 1
+                            )
+
                             onDismiss()
                         }
                     ) {

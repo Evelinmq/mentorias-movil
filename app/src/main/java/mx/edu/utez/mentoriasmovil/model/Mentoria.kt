@@ -5,6 +5,7 @@ data class Mentoria(
     val fecha: String,
     val horaInicio: String,
     val horaFin: String,
-    val cuatrimestre: Int,
-    val cupo: Int
+    val cupo: Int?,
+    val espacio: String?,
+    val materia: String?
 )

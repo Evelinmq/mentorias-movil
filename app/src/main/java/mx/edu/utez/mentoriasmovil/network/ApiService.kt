@@ -7,6 +7,8 @@ import mx.edu.utez.mentoriasmovil.model.LoginRequest
 import mx.edu.utez.mentoriasmovil.model.LoginResponse
 import mx.edu.utez.mentoriasmovil.model.Materia
 import mx.edu.utez.mentoriasmovil.model.Mentoria
+import mx.edu.utez.mentoriasmovil.model.MentoriaRequest
+import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -16,7 +18,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface ApiService {
-    @GET("/api/mentorias")
+    @GET("api/mentorias")
     suspend fun listarMentorias(): List<Mentoria>
 
     @POST("api/auth/login")
@@ -52,4 +54,11 @@ interface ApiService {
 
     @GET("api/espacios")
     suspend fun getEspacios(): List<Espacio>
-}
+
+    @POST("api/mentorias")
+    suspend fun crearMentoria(
+        @Body mentoria: MentoriaRequest
+    ): Response<Unit>
+
+    @GET("api/mentorias/movil")
+    suspend fun obtenerMentorias(): List<Mentoria>}
