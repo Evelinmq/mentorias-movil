@@ -25,7 +25,7 @@ class LoginViewModel() : ViewModel() {
     var isLoginSuccess by mutableStateOf(false)
     var userRole by mutableStateOf("")
 
-
+    var userId by mutableStateOf<Long>(0)
 
     fun onLoginClick() {
 

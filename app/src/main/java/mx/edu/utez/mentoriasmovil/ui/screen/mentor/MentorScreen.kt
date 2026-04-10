@@ -63,7 +63,7 @@ import mx.edu.utez.mentoriasmovil.viewmodel.MentoriaViewModel
 
 
 @Composable
-fun MentorScreen(navController: NavController) {
+fun MentorScreen(navController: NavController,  mentorId: Long) {
 
     var showDialog by remember { mutableStateOf(false) }
     val dateEstado = rememberDatePickerState()
@@ -73,7 +73,7 @@ fun MentorScreen(navController: NavController) {
 
     // ✅ CARGA INICIAL
     LaunchedEffect(Unit) {
-        mentoriaViewModel.obtenerDatos()
+        mentoriaViewModel.obtenerMentoriasPorMentor(mentorId)
     }
 
     val fechaMs = dateEstado.selectedDateMillis
@@ -469,7 +469,7 @@ fun AgregarMentoriaDialog(
                                 horaInicio = horaInicio,
                                 horaFin = horaFin,
                                 cuatrimestre =  materiaSeleccionada?.cuatrimestre ?: 0,
-                                cupo = 10,
+                                cupo = 5,
                                 materiaId = materiaSeleccionada?.id ?: 0,
                                 espacioId = aulaSeleccionada?.id ?: 0,
                                 mentorId = 1

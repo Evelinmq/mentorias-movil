@@ -51,7 +51,7 @@ import androidx.compose.ui.geometry.Offset
 
 @Composable
 fun LoginScreen (viewModel: LoginViewModel,
-onLoginSuccess: (String) -> Unit,
+onLoginSuccess: (String, Long) -> Unit,
 onNavigateToRegister: () -> Unit,
                  onNavigateToRecovery: () -> Unit
                  ) {
@@ -66,8 +66,8 @@ onNavigateToRegister: () -> Unit,
                 .replace("role_", "")
 
             println("ROL LIMPIO: $rolLimpio")
-
-            onLoginSuccess(rolLimpio)
+            val mentorId = viewModel.userId
+            onLoginSuccess(rolLimpio, mentorId)
             viewModel.isLoginSuccess = false
         }
     }

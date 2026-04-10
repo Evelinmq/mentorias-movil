@@ -22,7 +22,7 @@ interface ApiService {
     suspend fun listarMentorias(): List<Mentoria>
 
     @POST("api/auth/login")
-    suspend fun login(@Body loginDT0 : LoginRequest) : Response<LoginResponse>
+    suspend fun login(@Body loginDT0: LoginRequest): Response<LoginResponse>
 
     @GET("api/materias")
     suspend fun listarMaterias(): List<Materia>
@@ -61,4 +61,8 @@ interface ApiService {
     ): Response<Unit>
 
     @GET("api/mentorias/movil")
-    suspend fun obtenerMentorias(): List<Mentoria>}
+    suspend fun obtenerMentorias(): List<Mentoria>
+
+    @GET("api/mentorias/movil/mentor/{id}")
+    suspend fun obtenerMentoriasPorMentor(@Path("id") mentorId: Long): List<Mentoria>
+}

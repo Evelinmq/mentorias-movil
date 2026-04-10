@@ -93,6 +93,18 @@ class MentoriaViewModel : ViewModel() {
         }
     }
 
+    fun obtenerMentoriasPorMentor(mentorId: Long) {
+        viewModelScope.launch {
+            try {
+                val respuesta = RetrofitClient.apiService.obtenerMentoriasPorMentor(mentorId)
+                listarMentorias = respuesta
+                mentoriasFiltradas = respuesta
 
+                Log.d("API_TEST", "Mentorías del mentor: ${respuesta.size}")
+            } catch (e: Exception) {
+                Log.e("API_TEST", "Error: ${e.message}")
+            }
+        }
+    }
 
 }

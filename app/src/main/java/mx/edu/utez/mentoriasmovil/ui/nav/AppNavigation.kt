@@ -28,14 +28,15 @@ fun AppNavigation() {
         composable("login") {
             val loginViewModel: LoginViewModel = viewModel()
 
+
             LoginScreen(
                 viewModel = loginViewModel,
-                onLoginSuccess = { rol ->
+                onLoginSuccess = { rol, id ->
 
                     val rolFinal = rol.trim().lowercase()
 
                     val destination = when (rolFinal) {
-                        "mentor" -> "mentor_home"
+                        "mentor" -> "mentor_home/$id" // 👈 AQUÍ EL CAMBIO
                         "aprendiz", "alumno" -> "aprendiz_asesoria"
                         "admin", "administrador" -> "admin_historial"
                         else -> {
@@ -71,8 +72,14 @@ fun AppNavigation() {
                 onResend = { println("Reenviar código") }
             )
         }
-        composable("mentor_home") {
-            MentorScreen(navController)
+        composable("mentor_home/{mentorId}") { backStackEntry ->
+
+            val mentorId = backStackEntry.arguments?.getString("mentorId")?.toLong() ?: 0L
+
+            MentorScreen(
+                navController = navController,
+                mentorId = mentorId
+            )
         }
 
 
