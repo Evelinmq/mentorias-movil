@@ -1,29 +1,40 @@
 package mx.edu.utez.mentoriasmovil.network
 
-import mx.edu.utez.mentoriasmovil.model.Carrera
-import mx.edu.utez.mentoriasmovil.model.Edificio
-import mx.edu.utez.mentoriasmovil.model.Espacio
-import mx.edu.utez.mentoriasmovil.model.LoginRequest
-import mx.edu.utez.mentoriasmovil.model.LoginResponse
-import mx.edu.utez.mentoriasmovil.model.Materia
-import mx.edu.utez.mentoriasmovil.model.Mentoria
-import mx.edu.utez.mentoriasmovil.model.MentoriaRequest
-import retrofit2.Call
+import mx.edu.utez.mentoriasmovil.model.*
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.DELETE
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.PUT
-import retrofit2.http.Path
+import retrofit2.http.*
 
 interface ApiService {
-    @GET("api/mentorias")
-    suspend fun listarMentorias(): List<Mentoria>
+    
+    // --- MENTORÍAS (MOVIL) ---
+    @GET("api/mentorias/movil")
+    suspend fun obtenerMentorias(): List<Mentoria>
 
+    @GET("api/mentorias/movil/mentor/{id}")
+    suspend fun obtenerMentoriasPorMentor(@Path("id") mentorId: Long): List<Mentoria>
+
+    // --- INSCRIPCIONES (REUTILIZADAS DE WEB) ---
+    @POST("api/mentorias-usuarios")
+    suspend fun agendarMentoria(
+        @Body request: InscripcionRequest,
+        @Query("tema") tema: String
+    ): Response<Unit>
+
+    @GET("api/mentorias-usuarios/usuario/{usuarioId}/detalle")
+    suspend fun obtenerMisMentorias(
+        @Path("usuarioId") usuarioId: Long
+    ): List<Mentoria>
+
+    @GET("api/mentorias-usuarios/usuario/{usuarioId}/historial")
+    suspend fun obtenerMiHistorial(
+        @Path("usuarioId") usuarioId: Long
+    ): List<Mentoria>
+
+    // --- AUTH ---
     @POST("api/auth/login")
     suspend fun login(@Body loginDT0: LoginRequest): Response<LoginResponse>
 
+    // --- MATERIAS ---
     @GET("api/materias")
     suspend fun listarMaterias(): List<Materia>
 
@@ -36,7 +47,7 @@ interface ApiService {
     @DELETE("api/materias/{id}")
     suspend fun eliminarMateria(@Path("id") id: Long): Response<Unit>
 
-
+    // --- CARRERAS ---
     @GET("api/carreras")
     suspend fun listarCarreras(): List<Carrera>
 
@@ -49,6 +60,7 @@ interface ApiService {
     @DELETE("api/carreras/{id}")
     suspend fun eliminarCarrera(@Path("id") id: Long): Response<Unit>
 
+    // --- EDIFICIOS Y ESPACIOS ---
     @GET("api/edificios")
     suspend fun listarEdificios(): List<Edificio>
 
@@ -56,13 +68,5 @@ interface ApiService {
     suspend fun getEspacios(): List<Espacio>
 
     @POST("api/mentorias")
-    suspend fun crearMentoria(
-        @Body mentoria: MentoriaRequest
-    ): Response<Unit>
-
-    @GET("api/mentorias/movil")
-    suspend fun obtenerMentorias(): List<Mentoria>
-
-    @GET("api/mentorias/movil/mentor/{id}")
-    suspend fun obtenerMentoriasPorMentor(@Path("id") mentorId: Long): List<Mentoria>
+    suspend fun crearMentoria(@Body mentoria: MentoriaRequest): Response<Unit>
 }

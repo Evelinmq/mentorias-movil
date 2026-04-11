@@ -11,59 +11,48 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.edu.utez.mentoriasmovil.model.AsesoriaData
 import mx.edu.utez.mentoriasmovil.ui.components.AprendizHeader
+import mx.edu.utez.mentoriasmovil.ui.components.aprendiz.AsesoriaDetalleDialog
 import mx.edu.utez.mentoriasmovil.ui.nav.AprendizBottomBar
 import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
+import mx.edu.utez.mentoriasmovil.viewmodel.AprendizViewModel
 
 val StatusGreen = Color(0xFF4CAF50)
-val StatusPending = Color(0xFFFFC107) // Restaurado a AMARILLO
+val StatusPending = Color(0xFFFFC107)
 val CardBackground = Color(0xFFF1F3F4)
 val PrimaryBlue = Color(0xFF1A3B7A)
 
 @Composable
-fun AsesoriaScreen(paddingValues: PaddingValues) {
+fun AsesoriaScreen(
+    paddingValues: PaddingValues,
+    viewModel: AprendizViewModel = viewModel()
+) {
     var asesoriaSeleccionada by remember { mutableStateOf<AsesoriaData?>(null) }
     var mostrarDialogo by remember { mutableStateOf(false) }
 
-    val listaAsesorias = listOf(
-        AsesoriaData(
-            email = "20243ds148@utez.edu.mx",
-            nombre = "Andres Manuel Lopez Obrador",
-            fecha = "30/01/2026",
-            materia = "Contaduría I",
-            ubicacion = "A2 - Docencia II",
-            hora = "13:00 - 14:00",
-            agendada = true
-        ),
-        AsesoriaData(
-            email = "20243ds145@utez.edu.mx",
-            nombre = "Claudia Sheinbaum Pardo",
-            fecha = "31/01/2026",
-            materia = "Física II",
-            ubicacion = "Laboratorio de Cómputo 1",
-            hora = "10:00 - 11:30",
-            agendada = false
-        )
-    )
+    val listaAsesorias = viewModel.listaAsesoriasAgendadas
+    val isLoading = viewModel.isLoading
+    val error = viewModel.errorMessage
 
     if (mostrarDialogo && asesoriaSeleccionada != null) {
         AsesoriaDetalleDialog(
             data = asesoriaSeleccionada!!,
-            onDismiss = { mostrarDialogo = false }
+            onDismiss = { mostrarDialogo = false },
+            onConfirm = null, // No hay botón de confirmar porque ya están agendadas
+            confirmText = "Cerrar"
         )
     }
 
@@ -83,74 +72,44 @@ fun AsesoriaScreen(paddingValues: PaddingValues) {
             EstadoItem(texto = "Aceptación pendiente", color = StatusPending)
         }
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            items(listaAsesorias) { asesoria ->
-                AsesoriaCard(
-                    data = asesoria,
-                    onClick = {
-                        asesoriaSeleccionada = asesoria
-                        mostrarDialogo = true
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = PrimaryBlue
+                )
+            } else if (error != null) {
+                Text(
+                    text = error,
+                    color = Color.Red,
+                    modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                    textAlign = TextAlign.Center
+                )
+            } else if (listaAsesorias.isEmpty()) {
+                Text(
+                    text = "Aún no tienes asesorías programadas.\nVe a la sección 'Agregar' para buscar una.",
+                    modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                    textAlign = TextAlign.Center,
+                    color = Color.Gray
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    items(listaAsesorias) { asesoria ->
+                        AsesoriaCard(
+                            data = asesoria,
+                            onClick = {
+                                asesoriaSeleccionada = asesoria
+                                mostrarDialogo = true
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
-    }
-}
-
-@Composable
-fun AsesoriaDetalleDialog(data: AsesoriaData, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(24.dp),
-        containerColor = Color.White,
-        title = {
-            Text(
-                text = "Detalles de la Asesoría",
-                fontWeight = FontWeight.Bold,
-                color = PrimaryBlue
-            )
-        },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                DetailItem(label = "Mentor", value = data.nombre)
-                DetailItem(label = "Email", value = data.email)
-                DetailItem(label = "Materia", value = data.materia)
-                DetailItem(label = "Fecha", value = data.fecha)
-                DetailItem(label = "Hora", value = data.hora)
-                DetailItem(label = "Ubicación", value = data.ubicacion)
-                DetailItem(
-                    label = "Estado",
-                    value = if (data.agendada) "Agendada" else "Aceptación pendiente",
-                    valueColor = if (data.agendada) StatusGreen else StatusPending
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("Cerrar", color = Color.White)
-            }
-        }
-    )
-}
-
-@Composable
-fun DetailItem(label: String, value: String, valueColor: Color = Color.Black) {
-    Column(modifier = Modifier.padding(vertical = 4.dp)) {
-        Text(text = label, fontSize = 12.sp, color = Color.Gray)
-        Text(
-            text = value,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            color = valueColor
-        )
     }
 }
 
@@ -158,8 +117,8 @@ fun DetailItem(label: String, value: String, valueColor: Color = Color.Black) {
 fun AsesoriaCard(
     data: AsesoriaData,
     onClick: () -> Unit,
-    indicadorColor: Color = if (data.agendada) StatusGreen else StatusPending, // Color personalizable
-    mostrarPunto: Boolean = true // Opción para ocultar el punto
+    indicadorColor: Color = StatusGreen,
+    mostrarPunto: Boolean = true
 ) {
     Card(
         shape = RoundedCornerShape(24.dp),
@@ -169,7 +128,6 @@ fun AsesoriaCard(
             .clickable { onClick() }
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-            // Línea lateral con el color seleccionado
             Box(
                 modifier = Modifier
                     .width(8.dp)
@@ -193,7 +151,6 @@ fun AsesoriaCard(
                         color = Color(0xFF5F6368)
                     )
                     Column(horizontalAlignment = Alignment.End) {
-                        // PUNTO INDICADOR (Condicional)
                         if (mostrarPunto) {
                             Box(
                                 modifier = Modifier
@@ -275,29 +232,5 @@ fun EstadoItem(texto: String, color: Color) {
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(text = texto, fontSize = 12.sp, color = Color.Gray)
-    }
-}
-
-
-data class AsesoriaData(
-    val email: String,
-    val nombre: String,
-    val fecha: String,
-    val materia: String,
-    val ubicacion: String,
-    val hora: String,
-    val agendada: Boolean
-)
-
-@Preview(showSystemUi = true)
-@Composable
-fun AsesoriasScreenPreview() {
-    MentoriasMovilTheme {
-        Scaffold(
-            topBar = { AprendizHeader(onLogout = {}) },
-            bottomBar = { AprendizBottomBar(currentRoute = "Asesorias", onNavigate = {}) }
-        ) { padding ->
-            AsesoriaScreen(padding)
-        }
     }
 }
