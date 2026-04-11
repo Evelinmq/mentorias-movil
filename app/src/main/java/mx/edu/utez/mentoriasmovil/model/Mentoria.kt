@@ -7,5 +7,7 @@ data class Mentoria(
     val horaFin: String,
     val cupo: Int?,
     val espacio: String?,
-    val materia: String?
+    val materia: String?,
+    val mentor: String?,
+    val email: String? // Agregamos el campo para el correo
 )

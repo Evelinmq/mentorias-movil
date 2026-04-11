@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import mx.edu.utez.mentoriasmovil.ui.screen.aprendiz.AsesoriaData
+import mx.edu.utez.mentoriasmovil.model.AsesoriaData
 import mx.edu.utez.mentoriasmovil.ui.screen.aprendiz.CardBackground
 import mx.edu.utez.mentoriasmovil.ui.screen.aprendiz.PrimaryBlue
 

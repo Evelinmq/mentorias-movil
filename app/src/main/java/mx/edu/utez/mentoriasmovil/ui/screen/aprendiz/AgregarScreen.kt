@@ -4,52 +4,45 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.edu.utez.mentoriasmovil.model.AsesoriaData
 import mx.edu.utez.mentoriasmovil.ui.components.AprendizHeader
 import mx.edu.utez.mentoriasmovil.ui.components.aprendiz.AprendizSearchBar
+import mx.edu.utez.mentoriasmovil.ui.components.aprendiz.AsesoriaDetalleDialog
 import mx.edu.utez.mentoriasmovil.ui.components.aprendiz.card.AgregarAsesoriaCard
 import mx.edu.utez.mentoriasmovil.ui.nav.AprendizBottomBar
 import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
+import mx.edu.utez.mentoriasmovil.viewmodel.AprendizViewModel
 
 @Composable
-fun AgregarScreen(paddingValues: PaddingValues) {
+fun AgregarScreen(
+    paddingValues: PaddingValues,
+    viewModel: AprendizViewModel = viewModel()
+) {
     var asesoriaSeleccionada by remember { mutableStateOf<AsesoriaData?>(null) }
     var mostrarDialogo by remember { mutableStateOf(false) }
 
-    val mentoriasDisponibles = listOf(
-        AsesoriaData(
-            email = "20243ds148@utez.edu.mx",
-            nombre = "Gustavo Diaz Peña",
-            fecha = "30/01/2026",
-            materia = "Matematica aplicada",
-            ubicacion = "A2 - Docencia II",
-            hora = "08:00 - 10:00",
-            agendada = false
-        ),
-        AsesoriaData(
-            email = "20243ds148@utez.edu.mx",
-            nombre = "Gustavo Diaz Peña",
-            fecha = "30/01/2026",
-            materia = "Matematica aplicada",
-            ubicacion = "A12 - Docencia V",
-            hora = "13:00 - 14:00",
-            agendada = false
-        )
-    )
+    val mentoriasDisponibles = viewModel.listaAsesoriasDisponibles
+    val isLoading = viewModel.isLoading
+    val error = viewModel.errorMessage
 
     if (mostrarDialogo && asesoriaSeleccionada != null) {
         AsesoriaDetalleDialog(
             data = asesoriaSeleccionada!!,
-            onDismiss = { mostrarDialogo = false }
+            onDismiss = { mostrarDialogo = false },
+            onConfirm = {
+                viewModel.agendarAsesoria(asesoriaSeleccionada!!)
+                mostrarDialogo = false
+            },
+            confirmText = "Agendar"
         )
     }
 
@@ -64,19 +57,41 @@ fun AgregarScreen(paddingValues: PaddingValues) {
             modifier = Modifier.padding(16.dp)
         )
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            items(mentoriasDisponibles) { item ->
-                AgregarAsesoriaCard(
-                    data = item,
-                    onClick = {
-                        asesoriaSeleccionada = item
-                        mostrarDialogo = true
-                    }
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color(0xFF1A3B7A)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+            } else if (error != null) {
+                Text(
+                    text = error,
+                    color = Color.Red,
+                    modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                    textAlign = TextAlign.Center
+                )
+            } else if (mentoriasDisponibles.isEmpty()) {
+                Text(
+                    text = "No hay asesorías disponibles.",
+                    modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                    color = Color.Gray
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    items(mentoriasDisponibles) { item ->
+                        AgregarAsesoriaCard(
+                            data = item,
+                            onClick = {
+                                asesoriaSeleccionada = item
+                                mostrarDialogo = true
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
             }
         }
     }

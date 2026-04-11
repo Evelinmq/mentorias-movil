@@ -5,40 +5,38 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.OutlinedTextField
-
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import mx.edu.utez.mentoriasmovil.ui.components.MainHeader
-import mx.edu.utez.mentoriasmovil.ui.components.admin.bar.SearchBar
 import mx.edu.utez.mentoriasmovil.ui.components.admin.card.MentoriaCard
 import mx.edu.utez.mentoriasmovil.ui.nav.AdminBottomBar
-import mx.edu.utez.mentoriasmovil.ui.screen.aprendiz.HistorialScreen
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.unit.dp
 import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
 import mx.edu.utez.mentoriasmovil.viewmodel.MentoriaViewModel
 
-
 @Composable
-fun HistorialContent(paddingValues: PaddingValues, viewModel : MentoriaViewModel = viewModel ()) {
+fun HistorialContent(paddingValues: PaddingValues, viewModel: MentoriaViewModel = viewModel()) {
 
     var mentor by remember { mutableStateOf("") }
-    var materia by remember { mutableStateOf("") }
+    var materiaBusqueda by remember { mutableStateOf("") }
 
     var fechaInicio by remember { mutableStateOf("") }
     var fechaFin by remember { mutableStateOf("") }
@@ -66,8 +64,8 @@ fun HistorialContent(paddingValues: PaddingValues, viewModel : MentoriaViewModel
             )
 
             OutlinedTextField(
-                value = materia,
-                onValueChange = { materia = it },
+                value = materiaBusqueda,
+                onValueChange = { materiaBusqueda = it },
                 label = { Text("Buscar materia") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -92,28 +90,32 @@ fun HistorialContent(paddingValues: PaddingValues, viewModel : MentoriaViewModel
                     modifier = Modifier.weight(1f)
                 )
             }
-            }
         }
-    
 
-        LazyColumn {
+        Spacer(modifier = Modifier.height(8.dp))
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp)
+        ) {
             items(viewModel.listarMentorias) { mentoria ->
                 MentoriaCard(
                     fecha = mentoria.fecha,
                     hora = "${mentoria.horaInicio}-${mentoria.horaFin}",
-                    mentor = "Mentor: ${mentoria.id}",
-                    carrera = "carrera",
-                    materia = "Cuatrimestre: ${mentoria.cuatrimestre}"
+                    mentor = "Mentor ID: ${mentoria.id}",
+                    carrera = "Carrera", // Ajustar si el modelo tiene carrera
+                    materia = mentoria.materia ?: "Sin materia"
                 )
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
+}
 
 @Preview(showSystemUi = true)
 @Composable
 fun HistorialPreview() {
     MentoriasMovilTheme {
-
         Scaffold(
             topBar = { MainHeader(onLogout = {}) },
             bottomBar = {
@@ -123,9 +125,7 @@ fun HistorialPreview() {
                 )
             }
         ) { paddingValues ->
-
             HistorialContent(paddingValues)
-
         }
     }
 }
