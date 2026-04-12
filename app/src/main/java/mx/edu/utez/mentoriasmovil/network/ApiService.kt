@@ -13,7 +13,7 @@ interface ApiService {
     @GET("api/mentorias/movil/mentor/{id}")
     suspend fun obtenerMentoriasPorMentor(@Path("id") mentorId: Long): List<Mentoria>
 
-    // --- INSCRIPCIONES (REUTILIZADAS DE WEB) ---
+    // --- INSCRIPCIONES ---
     @POST("api/mentorias-usuarios")
     suspend fun agendarMentoria(
         @Body request: InscripcionRequest,
@@ -23,12 +23,12 @@ interface ApiService {
     @GET("api/mentorias-usuarios/usuario/{usuarioId}/detalle")
     suspend fun obtenerMisMentorias(
         @Path("usuarioId") usuarioId: Long
-    ): List<Mentoria>
+    ): List<MentoriaDetalle>
 
     @GET("api/mentorias-usuarios/usuario/{usuarioId}/historial")
     suspend fun obtenerMiHistorial(
         @Path("usuarioId") usuarioId: Long
-    ): List<Mentoria>
+    ): List<MentoriaDetalle>
 
     // --- AUTH ---
     @POST("api/auth/login")

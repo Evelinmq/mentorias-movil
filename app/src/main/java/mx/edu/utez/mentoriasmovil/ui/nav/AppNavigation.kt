@@ -1,19 +1,18 @@
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+package mx.edu.utez.mentoriasmovil.ui.nav
+
+import mx.edu.utez.mentoriasmovil.viewmodel.LoginViewModel
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import mx.edu.utez.mentoriasmovil.ui.screen.admin.AdminScreenContainer
 import mx.edu.utez.mentoriasmovil.ui.screen.aprendiz.AprendizScreenContainer
-import mx.edu.utez.mentoriasmovil.ui.screen.aprendiz.AsesoriaScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.login.LoginScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.mentor.MentorScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.recuperacion.RecuperacionScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.registro.RegistroScreen
-import mx.edu.utez.mentoriasmovil.viewmodel.LoginViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.RegistroViewModel
-
 
 @Composable
 fun AppNavigation() {
@@ -25,19 +24,18 @@ fun AppNavigation() {
         startDestination = "login"
     ) {
 
+        // ─── LOGIN ───────────────────────────────────────────────
         composable("login") {
             val loginViewModel: LoginViewModel = viewModel()
-
 
             LoginScreen(
                 viewModel = loginViewModel,
                 onLoginSuccess = { rol, id ->
-
                     val rolFinal = rol.trim().lowercase()
 
                     val destination = when (rolFinal) {
-                        "mentor" -> "mentor_home/$id" // 👈 AQUÍ EL CAMBIO
-                        "aprendiz", "alumno" -> "aprendiz_asesoria"
+                        "mentor"                 -> "mentor_home/$id"
+                        "aprendiz", "alumno"     -> "aprendiz_asesoria/$id"
                         "admin", "administrador" -> "admin_historial"
                         else -> {
                             println("ROL NO RECONOCIDO: $rolFinal")
@@ -55,26 +53,28 @@ fun AppNavigation() {
             )
         }
 
+        // ─── REGISTRO ────────────────────────────────────────────
         composable("registro") {
             val registroViewModel: RegistroViewModel = viewModel()
 
             RegistroScreen(
                 viewModel = registroViewModel,
-                onBackToLogin = {
-                    navController.popBackStack()
-                }
+                onBackToLogin = { navController.popBackStack() }
             )
         }
 
+        // ─── RECUPERACIÓN ────────────────────────────────────────
         composable("recovery") {
             RecuperacionScreen(
                 onBack = { navController.popBackStack() },
                 onResend = { println("Reenviar código") }
             )
         }
-        composable("mentor_home/{mentorId}") { backStackEntry ->
 
-            val mentorId = backStackEntry.arguments?.getString("mentorId")?.toLong() ?: 0L
+        // ─── MENTOR ──────────────────────────────────────────────
+        composable("mentor_home/{mentorId}") { backStackEntry ->
+            val mentorId = backStackEntry.arguments
+                ?.getString("mentorId")?.toLong() ?: 0L
 
             MentorScreen(
                 navController = navController,
@@ -82,8 +82,41 @@ fun AppNavigation() {
             )
         }
 
+        // ─── APRENDIZ ────────────────────────────────────────────
+        composable("aprendiz_asesoria/{aprendizId}") { backStackEntry ->
+            val aprendizId = backStackEntry.arguments
+                ?.getString("aprendizId")?.toLong() ?: 0L
 
-        //navegacion dentro de admin
+            AprendizScreenContainer(
+                currentScreen = "aprendiz_asesoria",
+                navController = navController,
+                aprendizId = aprendizId
+            )
+        }
+
+        composable("aprendiz_historial/{aprendizId}") { backStackEntry ->
+            val aprendizId = backStackEntry.arguments
+                ?.getString("aprendizId")?.toLong() ?: 0L
+
+            AprendizScreenContainer(
+                currentScreen = "aprendiz_historial",
+                navController = navController,
+                aprendizId = aprendizId
+            )
+        }
+
+        composable("aprendiz_agregar/{aprendizId}") { backStackEntry ->
+            val aprendizId = backStackEntry.arguments
+                ?.getString("aprendizId")?.toLong() ?: 0L
+
+            AprendizScreenContainer(
+                currentScreen = "aprendiz_agregar",
+                navController = navController,
+                aprendizId = aprendizId
+            )
+        }
+
+        // ─── ADMIN ───────────────────────────────────────────────
         composable("admin_historial") {
             AdminScreenContainer("historial", navController)
         }
@@ -95,21 +128,9 @@ fun AppNavigation() {
         composable("admin_materias") {
             AdminScreenContainer("materias", navController)
         }
+
         composable("admin_carreras") {
             AdminScreenContainer("carreras", navController)
-        }
-
-        //navegacion de aprendiz
-        composable("aprendiz_asesoria") {
-            AprendizScreenContainer("aprendiz_asesoria", navController)
-        }
-
-        composable("aprendiz_historial") {
-            AprendizScreenContainer("aprendiz_historial", navController)
-        }
-
-        composable("aprendiz_agregar") {
-            AprendizScreenContainer("aprendiz_agregar", navController)
         }
     }
 }

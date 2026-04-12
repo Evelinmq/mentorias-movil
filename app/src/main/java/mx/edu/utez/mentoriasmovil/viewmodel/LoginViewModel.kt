@@ -9,11 +9,8 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import mx.edu.utez.mentoriasmovil.model.LoginRequest
 import mx.edu.utez.mentoriasmovil.network.RetrofitClient
-import kotlin.onFailure
-import kotlin.onSuccess
-import kotlin.text.isBlank
 
-class LoginViewModel() : ViewModel() {
+class LoginViewModel : ViewModel() {
 
     var errorCorreo by mutableStateOf("")
     var errorContrasena by mutableStateOf("")
@@ -24,11 +21,9 @@ class LoginViewModel() : ViewModel() {
     var errorMessage by mutableStateOf<String?>(null)
     var isLoginSuccess by mutableStateOf(false)
     var userRole by mutableStateOf("")
-
     var userId by mutableStateOf<Long>(0)
 
     fun onLoginClick() {
-
         viewModelScope.launch {
 
             errorCorreo = ""
@@ -41,35 +36,32 @@ class LoginViewModel() : ViewModel() {
                 errorCorreo = "El correo es obligatorio"
                 isValid = false
             }
-
             if (password.isBlank()) {
                 errorContrasena = "La contraseña es obligatoria"
                 isValid = false
             }
-
             if (!isValid) return@launch
 
             isLoading = true
 
             try {
-
-               val datosLogin = LoginRequest(correo = correo, password = password)
-
-                val response = RetrofitClient.apiService.login(datosLogin)
+                val response = RetrofitClient.apiService.login(
+                    LoginRequest(correo = correo, password = password)
+                )
 
                 if (response.isSuccessful) {
                     val respuesta = response.body()
                     userRole = respuesta?.rol ?: ""
+                    userId = respuesta?.id ?: 0L
                     isLoginSuccess = true
+                    Log.d("LOGIN", "Rol: $userRole | ID: $userId")
                 } else {
-                    val errorBody = response.errorBody()?.string()
-                    errorMessage = try {
-                        val json = org.json.JSONObject(errorBody ?: "")
-                        json.getString("message")
-                    } catch (e: Exception) {
-                        "Error en login"
-                    }
+                    errorMessage = "Credenciales incorrectas"
                 }
+
+            } catch (e: Exception) {
+                errorMessage = "Error de conexión: ${e.message}"
+                Log.e("LOGIN", "Error: ${e.message}")
             } finally {
                 isLoading = false
             }

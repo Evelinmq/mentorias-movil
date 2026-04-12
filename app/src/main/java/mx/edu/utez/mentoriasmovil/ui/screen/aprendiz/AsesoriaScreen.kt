@@ -98,12 +98,19 @@ fun AsesoriaScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     items(listaAsesorias) { asesoria ->
+                        val color = when (asesoria.estado.trim()) {
+                            "Aceptada"      -> StatusGreen
+                            "Por aceptar"   -> StatusPending
+                            "Pendiente"     -> StatusPending
+                            else            -> StatusPending
+                        }
                         AsesoriaCard(
                             data = asesoria,
                             onClick = {
                                 asesoriaSeleccionada = asesoria
                                 mostrarDialogo = true
-                            }
+                            },
+                            indicadorColor = color
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }

@@ -1,6 +1,6 @@
 package mx.edu.utez.mentoriasmovil
 
-import AppNavigation
+import mx.edu.utez.mentoriasmovil.ui.nav.AppNavigation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent

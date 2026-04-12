@@ -25,7 +25,8 @@ import mx.edu.utez.mentoriasmovil.viewmodel.AprendizViewModel
 @Composable
 fun AgregarScreen(
     paddingValues: PaddingValues,
-    viewModel: AprendizViewModel = viewModel()
+    viewModel: AprendizViewModel = viewModel(),
+    onAgendadoExitoso: () -> Unit = {}  // ← nuevo parámetro
 ) {
     var asesoriaSeleccionada by remember { mutableStateOf<AsesoriaData?>(null) }
     var mostrarDialogo by remember { mutableStateOf(false) }
@@ -33,6 +34,18 @@ fun AgregarScreen(
     val mentoriasDisponibles = viewModel.listaAsesoriasDisponibles
     val isLoading = viewModel.isLoading
     val error = viewModel.errorMessage
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Mostrar snackbar cuando hay mensaje de éxito
+    LaunchedEffect(viewModel.mensajeExito) {
+        viewModel.mensajeExito?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.mensajeExito = null
+            viewModel.cargarTodo()
+            onAgendadoExitoso()
+        }
+    }
 
     if (mostrarDialogo && asesoriaSeleccionada != null) {
         AsesoriaDetalleDialog(
@@ -46,68 +59,61 @@ fun AgregarScreen(
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .background(Color.White)
-    ) {
-        AprendizSearchBar(
-            value = "Materia",
-            modifier = Modifier.padding(16.dp)
-        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(Color.White)
+        ) {
+            AprendizSearchBar(
+                value = "Materia",
+                modifier = Modifier.padding(16.dp)
+            )
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = Color(0xFF1A3B7A)
-                )
-            } else if (error != null) {
-                Text(
-                    text = error,
-                    color = Color.Red,
-                    modifier = Modifier.align(Alignment.Center).padding(16.dp),
-                    textAlign = TextAlign.Center
-                )
-            } else if (mentoriasDisponibles.isEmpty()) {
-                Text(
-                    text = "No hay asesorías disponibles.",
-                    modifier = Modifier.align(Alignment.Center).padding(16.dp),
-                    color = Color.Gray
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    items(mentoriasDisponibles) { item ->
-                        AgregarAsesoriaCard(
-                            data = item,
-                            onClick = {
-                                asesoriaSeleccionada = item
-                                mostrarDialogo = true
-                            }
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color(0xFF1A3B7A)
+                    )
+                } else if (error != null) {
+                    Text(
+                        text = error,
+                        color = Color.Red,
+                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                } else if (mentoriasDisponibles.isEmpty()) {
+                    Text(
+                        text = "No hay asesorías disponibles.",
+                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                        color = Color.Gray
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        items(mentoriasDisponibles) { item ->
+                            AgregarAsesoriaCard(
+                                data = item,
+                                onClick = {
+                                    asesoriaSeleccionada = item
+                                    mostrarDialogo = true
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
                     }
                 }
             }
         }
-    }
-}
 
-@Preview(showSystemUi = true)
-@Composable
-fun AgregarScreenPreview() {
-    MentoriasMovilTheme {
-        Scaffold(
-            topBar = { AprendizHeader(onLogout = {}) },
-            bottomBar = {
-                AprendizBottomBar(currentRoute = "Agregar", onNavigate = {})
-            }
-        ) { padding ->
-            AgregarScreen(padding)
-        }
+        // Snackbar al fondo de la pantalla
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }

@@ -2,15 +2,23 @@ package mx.edu.utez.mentoriasmovil.ui.screen.aprendiz
 
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import mx.edu.utez.mentoriasmovil.ui.components.MainHeader
 import mx.edu.utez.mentoriasmovil.ui.nav.AprendizBottomBar
+import mx.edu.utez.mentoriasmovil.viewmodel.AprendizViewModel
 
 @Composable
 fun AprendizScreenContainer(
     currentScreen: String,
-    navController: NavController
+    navController: NavController,
+    aprendizId: Long = 0L
 ) {
+    // Un solo ViewModel compartido entre las 3 pantallas con el id real
+    val viewModel: AprendizViewModel = viewModel(
+        factory = AprendizViewModel.factory(aprendizId)
+    )
+
     Scaffold(
         topBar = {
             MainHeader(
@@ -25,19 +33,27 @@ fun AprendizScreenContainer(
             AprendizBottomBar(
                 currentRoute = currentScreen,
                 onNavigate = { route ->
-                    navController.navigate(route) {
-                        popUpTo("aprendiz_asesoria")
+                    navController.navigate("$route/$aprendizId") {
+                        popUpTo("aprendiz_asesoria/$aprendizId")
                         launchSingleTop = true
                     }
                 }
             )
         }
     ) { paddingValues ->
-
         when (currentScreen) {
-            "aprendiz_asesoria" -> AsesoriaScreen(paddingValues)
-            "aprendiz_historial" -> HistorialScreen(paddingValues)
-            "aprendiz_agregar" -> AgregarScreen(paddingValues)
+            "aprendiz_asesoria"  -> AsesoriaScreen(paddingValues, viewModel)
+            "aprendiz_historial" -> HistorialScreen(paddingValues, viewModel)
+            "aprendiz_agregar"   -> AgregarScreen(
+                paddingValues = paddingValues,
+                viewModel = viewModel,
+                onAgendadoExitoso = {
+                    navController.navigate("aprendiz_asesoria/$aprendizId") {
+                        popUpTo("aprendiz_asesoria/$aprendizId")
+                        launchSingleTop = true
+                    }
+                }
+            )
         }
     }
 }

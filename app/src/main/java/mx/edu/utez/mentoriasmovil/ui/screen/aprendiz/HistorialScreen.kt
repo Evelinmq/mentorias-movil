@@ -35,7 +35,7 @@ fun HistorialScreen(
     var mostrarDialogo by remember { mutableStateOf(false) }
 
     // Usamos la lista de agendadas del ViewModel
-    val listaHistorial = viewModel.listaAsesoriasAgendadas
+    val listaHistorial = viewModel.listaHistorial
 
     // Mostrar el diálogo si se selecciona un ítem
     if (mostrarDialogo && asesoriaSeleccionada != null) {

@@ -8,5 +8,6 @@ data class AsesoriaData(
     val materia: String,
     val ubicacion: String,
     val hora: String,
-    var agendada: Boolean = false
+    var agendada: Boolean = false,
+    val estado: String = "Pendiente"
 )

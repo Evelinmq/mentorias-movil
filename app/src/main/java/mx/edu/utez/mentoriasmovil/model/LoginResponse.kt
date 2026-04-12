@@ -1,7 +1,7 @@
 package mx.edu.utez.mentoriasmovil.model
 
 data class LoginResponse(
-    val id: Any?,
+    val id: Long?,
     val nombre: String?,
     val correo: String?,
     val rol: String?

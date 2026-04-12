@@ -5,22 +5,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import mx.edu.utez.mentoriasmovil.model.*
 import mx.edu.utez.mentoriasmovil.network.RetrofitClient
 
-class AprendizViewModel : ViewModel() {
+class AprendizViewModel(private val usuarioId: Long) : ViewModel() {
 
     var listaAsesoriasAgendadas by mutableStateOf<List<AsesoriaData>>(emptyList())
     var listaAsesoriasDisponibles by mutableStateOf<List<AsesoriaData>>(emptyList())
-    
+    var listaHistorial by mutableStateOf<List<AsesoriaData>>(emptyList())
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf<String?>(null)
+    var mensajeExito by mutableStateOf<String?>(null)
 
-    // Por ahora simulamos que el usuario logueado es el ID 1
-    // Más adelante este vendrá del Login real
-    private val usuarioLogueadoId = 1L 
 
     init {
         cargarTodo()
@@ -31,22 +30,31 @@ class AprendizViewModel : ViewModel() {
             isLoading = true
             errorMessage = null
             try {
-                // 1. Cargamos las agendadas por el alumno (REUTILIZANDO API WEB)
-                val agendadasResponse = RetrofitClient.apiService.obtenerMisMentorias(usuarioLogueadoId)
-                listaAsesoriasAgendadas = agendadasResponse.map { it.toAsesoriaData(true) }
+                val agendadasResponse = RetrofitClient.apiService
+                    .obtenerMisMentorias(usuarioId)
+                listaAsesoriasAgendadas = agendadasResponse
+                    .map { it.toAsesoriaData(true)}
 
-                // 2. Cargamos las disponibles
-                val disponiblesResponse = RetrofitClient.apiService.obtenerMentorias()
-                
-                // Filtramos las que ya están agendadas para que no salgan doble
-                listaAsesoriasDisponibles = disponiblesResponse
-                    .filter { mentoria -> !listaAsesoriasAgendadas.any { it.id == mentoria.id } }
+                val historialResponse = RetrofitClient.apiService
+                    .obtenerMiHistorial(usuarioId)
+                listaHistorial = historialResponse
                     .map { it.toAsesoriaData(false) }
 
-                Log.d("AprendizViewModel", "Carga completa: ${listaAsesoriasAgendadas.size} agendadas, ${listaAsesoriasDisponibles.size} disponibles")
+                val disponiblesResponse = RetrofitClient.apiService.obtenerMentorias()
+                listaAsesoriasDisponibles = disponiblesResponse
+                    .filter { mentoria ->
+                        !listaAsesoriasAgendadas.any { it.id == mentoria.id }
+                    }
+                    .map { it.toAsesoriaData(false) }
+
+                Log.d("AprendizVM",
+                    "Agendadas: ${listaAsesoriasAgendadas.size} | " +
+                            "Historial: ${listaHistorial.size} | " +
+                            "Disponibles: ${listaAsesoriasDisponibles.size}")
+
             } catch (e: Exception) {
-                Log.e("AprendizViewModel", "Error al cargar datos", e)
-                errorMessage = "Error al sincronizar con el servidor"
+                Log.e("AprendizVM", "Error: ${e.message}")
+                errorMessage = "Error al conectar con el servidor"
             } finally {
                 isLoading = false
             }
@@ -55,34 +63,43 @@ class AprendizViewModel : ViewModel() {
 
     fun agendarAsesoria(asesoria: AsesoriaData) {
         viewModelScope.launch {
+            isLoading = true
             try {
-                isLoading = true
-                
-                // Creamos el objeto de inscripción como lo pide el MentoriaUsuarioController
                 val request = InscripcionRequest(
-                    usuario = UsuarioId(usuarioLogueadoId),
+                    usuario = UsuarioId(usuarioId),
                     mentoria = MentoriaId(asesoria.id)
                 )
-
-                val response = RetrofitClient.apiService.agendarMentoria(request, tema = "Apoyo en ${asesoria.materia}")
-                
+                val response = RetrofitClient.apiService.agendarMentoria(
+                    request,
+                    tema = "Apoyo en ${asesoria.materia}"
+                )
                 if (response.isSuccessful) {
-                    Log.d("AprendizViewModel", "¡Inscripción exitosa en el servidor!")
-                    // Recargamos todo para estar seguros de que la UI refleja la DB
-                    cargarTodo()
+                    Log.d("AprendizVM", "Inscripción exitosa")
+                    mensajeExito = "¡Asesoría agendada correctamente!"
                 } else {
                     errorMessage = "Error al agendar: ${response.message()}"
+                    Log.e("AprendizVM", response.errorBody()?.string() ?: "")
                 }
             } catch (e: Exception) {
                 errorMessage = "Error de red al agendar"
+                Log.e("AprendizVM", "Error: ${e.message}")
             } finally {
                 isLoading = false
             }
         }
     }
+
+    companion object {
+        fun factory(usuarioId: Long): ViewModelProvider.Factory =
+            object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return AprendizViewModel(usuarioId) as T
+                }
+            }
+    }
 }
 
-// Función de extensión para convertir el modelo de la API al de la UI
 fun Mentoria.toAsesoriaData(agendada: Boolean): AsesoriaData {
     return AsesoriaData(
         id = this.id,
@@ -93,5 +110,20 @@ fun Mentoria.toAsesoriaData(agendada: Boolean): AsesoriaData {
         ubicacion = this.espacio ?: "Sin ubicación",
         hora = "${this.horaInicio} - ${this.horaFin}",
         agendada = agendada
+    )
+}
+
+fun MentoriaDetalle.toAsesoriaData(agendada: Boolean): AsesoriaData {
+    return AsesoriaData(
+        id = this.id,
+        email = this.mentor?.correo ?: "sin_correo@utez.edu.mx",
+        nombre = "${this.mentor?.nombre ?: ""} ${this.mentor?.apellidoP ?: ""}".trim()
+            .ifBlank { "Mentor sin nombre" },
+        fecha = this.fecha,
+        materia = this.materia?.nombre ?: "Sin materia",
+        ubicacion = this.espacio?.nombre ?: "Sin ubicación",
+        hora = "${this.horaInicio} - ${this.horaFin}",
+        agendada = agendada,
+        estado = this.estado?.nombre ?: "Pendiente"
     )
 }
