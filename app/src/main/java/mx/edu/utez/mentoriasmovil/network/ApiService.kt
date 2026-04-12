@@ -69,4 +69,16 @@ interface ApiService {
 
     @POST("api/mentorias")
     suspend fun crearMentoria(@Body mentoria: MentoriaRequest): Response<Unit>
+
+
+    @GET("api/usuarios/estado/{nombreEstado}")
+    suspend fun listarPorEstado(@Path("nombreEstado") estado: String): List<UserResponse>
+
+    @POST("api/usuarios/cambiar-estado")
+    suspend fun cambiarEstado(@Body payload: Map<String, Long>): Response<Unit>
+
+    @DELETE("api/usuarios/{id}")
+    suspend fun eliminarUsuario(@Path("id") id: Long): Response<Unit>
+
+
 }
