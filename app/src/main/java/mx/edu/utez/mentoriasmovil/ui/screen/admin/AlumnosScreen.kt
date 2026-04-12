@@ -2,6 +2,7 @@ package mx.edu.utez.mentoriasmovil.ui.screen.admin
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -39,36 +40,49 @@ import mx.edu.utez.mentoriasmovil.ui.nav.AdminBottomBar
 import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableLongStateOf
+import mx.edu.utez.mentoriasmovil.viewmodel.UsuariosViewModel
 
 
-/*
-* var viendoPendientes by remember { mutableStateOf(false) }
-
-AlumnosScreen(
-    paddingValues = padding,
-    viendoPendientes = viendoPendientes,
-    onToggleVista = { viendoPendientes = !viendoPendientes }
-)
-* */
 @Composable
 fun AlumnosScreen(
     paddingValues: PaddingValues,
     viendoPendientes: Boolean = false,
-    onToggleVista: () -> Unit = {}
+    onToggleVista: () -> Unit = {},
+    viewModel: UsuariosViewModel
 ) {
 
+    val listaUsuarios by viewModel.usuarios.collectAsState()
+    val cargando by viewModel.isLoading.collectAsState()
+
+
     var showConfirmDialog by remember { mutableStateOf(false) }
-    var alumnoSeleccionado by remember { mutableStateOf("") }
+    var usuarioSeleccionadoId by remember { mutableLongStateOf(0L) }
+    var nombreMostrar by remember { mutableStateOf("") }
     var tipoAccion by remember { mutableStateOf("") }
+
+
+    LaunchedEffect(viendoPendientes) {
+        viewModel.cargarUsuarios(viendoPendientes)
+    }
 
     if (showConfirmDialog) {
         ConfirmDialog(
             title = if (tipoAccion == "eliminar") "Eliminar Usuario" else "Desactivar Usuario",
             message = if (tipoAccion == "eliminar")
-                "¿Eliminar usuario $alumnoSeleccionado? Esta acción es permanente."
-            else "¿Deseas desactivar al usuario $alumnoSeleccionado?",
+                "¿Eliminar usuario $nombreMostrar? Esta acción es permanente."
+            else "¿Deseas desactivar al usuario $nombreMostrar?",
             onDismiss = { showConfirmDialog = false },
-            onConfirm = { showConfirmDialog = false }
+            onConfirm = { if (tipoAccion == "eliminar"){
+                viewModel.eliminarUsuario(usuarioSeleccionadoId, viendoPendientes)
+            }else{
+                viewModel.desactivarUsuario(usuarioSeleccionadoId, viendoPendientes)
+            }
+                showConfirmDialog = false
+            }
         )
     }
 
@@ -110,6 +124,11 @@ fun AlumnosScreen(
             )
         }
 
+        if (cargando) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Color.Blue)
+            }
+        } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -118,84 +137,53 @@ fun AlumnosScreen(
                     Row(modifier = Modifier.padding(horizontal = 16.dp)) {
                         AddButton(onClick = { /* ... */ })
                     }
-                }
 
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-            }
-
-            item {
-                if (viendoPendientes) {
-                    AlumnoCard(
-                        nombre = "Marcos",
-                        apellidos = "Ramirez Fernandez",
-                        rol = "Mentor",
-                        carrera = "Desarrollo de Software",
-                        correo = "20243ds144@utez.edu.mx",
-                        esPendiente = true,
-                        onAcceptClick = { /* ... */ },
-                        onRejectClick = { /* ... */ }
-                    )
-                } else {
-                    AlumnoCard(
-                        nombre = "Marcos",
-                        apellidos = "Ramirez Pérez",
-                        rol = "Aprendiz",
-                        carrera = "Desarrollo de Software",
-                        correo = "20243ds144@utez.edu.mx",
-                        esPendiente = false,
-                        onEditClick = { /* ... */ },
-                        onDeleteClick = {
-                            alumnoSeleccionado = "Marcos Ramirez"
-                            tipoAccion = "eliminar"
-                            showConfirmDialog = true
-                        },
-                        onBlockClick = {
-                            alumnoSeleccionado = "Marcos Ramirez"
-                            tipoAccion = "desactivar"
-                            showConfirmDialog = true
-                        }
-                    )
-                }
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
-    }
-}
 
-@Preview(showSystemUi = true, name = "Vista Normal")
-@Composable
-fun AlumnosNormalPreview() {
-    MentoriasMovilTheme {
-        Scaffold(
-            topBar = { MainHeader(onLogout = {}) },
-            bottomBar = { AdminBottomBar(currentRoute = "Alumnos", onNavigate = {}) }
-        ) { padding ->
-            // Forzamos a que no esté en modo pendientes
-            AlumnosScreen(
-                paddingValues = padding,
-                viendoPendientes = false
-            )
+            items(listaUsuarios) { usuario ->
+                AlumnoCard(
+                    nombre = usuario.nombre,
+                    apellidos = "${usuario.apellidoP} ${usuario.apellidoM}",
+                    rol = usuario.roles?.firstOrNull()?.nombre ?: "Sin Rol",
+                    carrera = usuario.carrera?.nombre ?: "Sin Carrera",
+                    correo = usuario.correo,
+                    esPendiente = viendoPendientes,
+                    onAcceptClick = {
+                        viewModel.aceptarUsuario(usuario.id)
+                    },
+                    onRejectClick = {
+                        usuarioSeleccionadoId = usuario.id
+                        nombreMostrar = usuario.nombre
+                        tipoAccion = "eliminar" // Rechazar suele ser borrar la solicitud
+                        showConfirmDialog = true
+                    },
+                    onEditClick = { /* Lógica editar */ },
+                    onDeleteClick = {
+                        usuarioSeleccionadoId = usuario.id
+                        nombreMostrar = usuario.nombre
+                        tipoAccion = "eliminar"
+                        showConfirmDialog = true
+                    },
+                    onBlockClick = {
+                        usuarioSeleccionadoId = usuario.id
+                        nombreMostrar = usuario.nombre
+                        tipoAccion = "desactivar"
+                        showConfirmDialog = true
+                    }
+                )
+            }
+
+            item { Spacer(modifier = Modifier.height(80.dp)) }
+        }
         }
     }
 }
 
-@Preview(showSystemUi = true, name = "Vista Pendientes")
-@Composable
-fun AlumnosPendientesPreview() {
-    MentoriasMovilTheme {
-        Scaffold(
-            topBar = { MainHeader(onLogout = {}) },
-            bottomBar = { AdminBottomBar(currentRoute = "Alumnos", onNavigate = {}) }
-        ) { padding ->
 
-            AlumnosScreen(
-                paddingValues = padding,
-                viendoPendientes = true
-            )
-        }
-    }
-}
+
+
 
 @Preview(showBackground = true)
 @Composable
