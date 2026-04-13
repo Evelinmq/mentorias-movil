@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -15,15 +15,17 @@ import mx.edu.utez.mentoriasmovil.model.AsesoriaData
 
 private val PrimaryBlue = Color(0xFF1A3B7A)
 private val StatusGreen = Color(0xFF4CAF50)
-private val StatusPending = Color(0xFFFFC107)
 
 @Composable
 fun AsesoriaDetalleDialog(
     data: AsesoriaData,
     onDismiss: () -> Unit,
-    onConfirm: (() -> Unit)? = null,
+    onConfirm: ((tema: String) -> Unit)? = null,
     confirmText: String = "Cerrar"
 ) {
+    var tema by remember { mutableStateOf("") }
+    var errorTema by remember { mutableStateOf("") }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(24.dp),
@@ -43,14 +45,50 @@ fun AsesoriaDetalleDialog(
                 DetailItem(label = "Fecha", value = data.fecha)
                 DetailItem(label = "Hora", value = data.hora)
                 DetailItem(label = "Ubicación", value = data.ubicacion)
+
                 if (data.agendada) {
                     DetailItem(label = "Estado", value = "Agendada", valueColor = StatusGreen)
+                }
+
+                if (onConfirm != null) {
+                    OutlinedTextField(
+                        value = tema,
+                        onValueChange = {
+                            tema = it
+                            errorTema = ""
+                        },
+                        label = { Text("Tema a tratar") },
+                        placeholder = { Text("Ej: Dudas sobre el proyecto final") },
+                        isError = errorTema.isNotEmpty(),
+                        supportingText = {
+                            if (errorTema.isNotEmpty()) Text(errorTema, color = Color.Red)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = PrimaryBlue,
+                            unfocusedBorderColor = Color.LightGray
+                        ),
+                        singleLine = true
+                    )
                 }
             }
         },
         confirmButton = {
             Button(
-                onClick = onConfirm ?: onDismiss,
+                onClick = {
+                    if (onConfirm != null) {
+                        if (tema.isBlank()) {
+                            errorTema = "El tema es obligatorio"
+                        } else {
+                            onConfirm(tema)
+                        }
+                    } else {
+                        onDismiss()
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
                 shape = RoundedCornerShape(8.dp)
             ) {

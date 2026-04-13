@@ -9,7 +9,8 @@ data class MentoriaDetalle(
     val espacio: EspacioDetalle?,
     val mentor: MentorDetalle?,
     val materia: MateriaDetalle?,
-    val estado: EstadoDetalle?
+    val estado: EstadoDetalle?,
+    val alumnos: List<Any>? = null
 )
 
 data class EspacioDetalle(val id: Long?, val nombre: String?)

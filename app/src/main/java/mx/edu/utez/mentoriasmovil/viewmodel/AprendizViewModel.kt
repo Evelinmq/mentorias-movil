@@ -19,7 +19,26 @@ class AprendizViewModel(private val usuarioId: Long) : ViewModel() {
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf<String?>(null)
     var mensajeExito by mutableStateOf<String?>(null)
+    var filtroMateria by mutableStateOf<String?>(null)
 
+    val listaFiltrada: List<AsesoriaData>
+        get() = if (filtroMateria == null) {
+            listaAsesoriasDisponibles
+        } else {
+            listaAsesoriasDisponibles.filter {
+                it.materia.equals(filtroMateria, ignoreCase = true)
+            }
+        }
+
+    val materiasDisponibles: List<String>
+        get() = listaAsesoriasDisponibles
+            .map { it.materia }
+            .distinct()
+            .sorted()
+
+    fun filtrarPorMateria(materia: String?) {
+        filtroMateria = materia
+    }
 
     init {
         cargarTodo()
@@ -47,6 +66,21 @@ class AprendizViewModel(private val usuarioId: Long) : ViewModel() {
                     }
                     .map { it.toAsesoriaData(false) }
 
+                val conteo = RetrofitClient.apiService.obtenerConteoInscritos()
+
+                listaAsesoriasDisponibles = disponiblesResponse
+                    .filter { mentoria ->
+                        val noAgendada = !listaAsesoriasAgendadas.any { it.id == mentoria.id }
+                        val tieneCupo = (conteo[mentoria.id]?.toInt() ?: 0) < (mentoria.cupo ?: 0)
+                        noAgendada && tieneCupo
+                    }
+                    .map { mentoria ->
+                        mentoria.toAsesoriaData(false).copy(
+                            cupo = conteo[mentoria.id]?.toInt() ?: 0,
+                            cupoTotal = mentoria.cupo ?: 0
+                        )
+                    }
+
                 Log.d("AprendizVM",
                     "Agendadas: ${listaAsesoriasAgendadas.size} | " +
                             "Historial: ${listaHistorial.size} | " +
@@ -61,7 +95,7 @@ class AprendizViewModel(private val usuarioId: Long) : ViewModel() {
         }
     }
 
-    fun agendarAsesoria(asesoria: AsesoriaData) {
+    fun agendarAsesoria(asesoria: AsesoriaData, tema: String) {
         viewModelScope.launch {
             isLoading = true
             try {
@@ -71,7 +105,7 @@ class AprendizViewModel(private val usuarioId: Long) : ViewModel() {
                 )
                 val response = RetrofitClient.apiService.agendarMentoria(
                     request,
-                    tema = "Apoyo en ${asesoria.materia}"
+                    tema = tema
                 )
                 if (response.isSuccessful) {
                     Log.d("AprendizVM", "Inscripción exitosa")
@@ -109,7 +143,9 @@ fun Mentoria.toAsesoriaData(agendada: Boolean): AsesoriaData {
         materia = this.materia ?: "Sin materia",
         ubicacion = this.espacio ?: "Sin ubicación",
         hora = "${this.horaInicio} - ${this.horaFin}",
-        agendada = agendada
+        agendada = agendada,
+        cupo = 0,
+        cupoTotal = this.cupo ?: 0
     )
 }
 
@@ -124,6 +160,8 @@ fun MentoriaDetalle.toAsesoriaData(agendada: Boolean): AsesoriaData {
         ubicacion = this.espacio?.nombre ?: "Sin ubicación",
         hora = "${this.horaInicio} - ${this.horaFin}",
         agendada = agendada,
-        estado = this.estado?.nombre ?: "Pendiente"
+        estado = this.estado?.nombre ?: "Pendiente",
+        cupo = this.alumnos?.size ?: 0,
+        cupoTotal = this.cupo ?: 0
     )
 }

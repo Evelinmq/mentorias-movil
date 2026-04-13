@@ -10,34 +10,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import mx.edu.utez.mentoriasmovil.model.AsesoriaData
-import mx.edu.utez.mentoriasmovil.ui.components.AprendizHeader
 import mx.edu.utez.mentoriasmovil.ui.components.aprendiz.AprendizSearchBar
 import mx.edu.utez.mentoriasmovil.ui.components.aprendiz.AsesoriaDetalleDialog
 import mx.edu.utez.mentoriasmovil.ui.components.aprendiz.card.AgregarAsesoriaCard
-import mx.edu.utez.mentoriasmovil.ui.nav.AprendizBottomBar
-import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
 import mx.edu.utez.mentoriasmovil.viewmodel.AprendizViewModel
 
 @Composable
 fun AgregarScreen(
     paddingValues: PaddingValues,
     viewModel: AprendizViewModel = viewModel(),
-    onAgendadoExitoso: () -> Unit = {}  // ← nuevo parámetro
+    onAgendadoExitoso: () -> Unit = {}
 ) {
     var asesoriaSeleccionada by remember { mutableStateOf<AsesoriaData?>(null) }
     var mostrarDialogo by remember { mutableStateOf(false) }
 
-    val mentoriasDisponibles = viewModel.listaAsesoriasDisponibles
     val isLoading = viewModel.isLoading
     val error = viewModel.errorMessage
-
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Mostrar snackbar cuando hay mensaje de éxito
+    // Todas las mentorías — disponibles + ya inscritas
+    val todasLasMentorias = viewModel.listaFiltrada +
+            viewModel.listaAsesoriasAgendadas.filter { agendada ->
+                viewModel.listaFiltrada.none { it.id == agendada.id }
+            }
+
     LaunchedEffect(viewModel.mensajeExito) {
         viewModel.mensajeExito?.let {
             snackbarHostState.showSnackbar(it)
@@ -51,8 +50,8 @@ fun AgregarScreen(
         AsesoriaDetalleDialog(
             data = asesoriaSeleccionada!!,
             onDismiss = { mostrarDialogo = false },
-            onConfirm = {
-                viewModel.agendarAsesoria(asesoriaSeleccionada!!)
+            onConfirm = { tema ->
+                viewModel.agendarAsesoria(asesoriaSeleccionada!!, tema)
                 mostrarDialogo = false
             },
             confirmText = "Agendar"
@@ -67,7 +66,9 @@ fun AgregarScreen(
                 .background(Color.White)
         ) {
             AprendizSearchBar(
-                value = "Materia",
+                value = viewModel.filtroMateria ?: "Materia",
+                opciones = viewModel.materiasDisponibles,
+                onSeleccion = { viewModel.filtrarPorMateria(it) },
                 modifier = Modifier.padding(16.dp)
             )
 
@@ -81,13 +82,17 @@ fun AgregarScreen(
                     Text(
                         text = error,
                         color = Color.Red,
-                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(16.dp),
                         textAlign = TextAlign.Center
                     )
-                } else if (mentoriasDisponibles.isEmpty()) {
+                } else if (todasLasMentorias.isEmpty()) {
                     Text(
                         text = "No hay asesorías disponibles.",
-                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(16.dp),
                         color = Color.Gray
                     )
                 } else {
@@ -95,13 +100,16 @@ fun AgregarScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                     ) {
-                        items(mentoriasDisponibles) { item ->
+                        items(todasLasMentorias) { item ->
                             AgregarAsesoriaCard(
                                 data = item,
                                 onClick = {
-                                    asesoriaSeleccionada = item
-                                    mostrarDialogo = true
-                                }
+                                    if (!item.agendada) {
+                                        asesoriaSeleccionada = item
+                                        mostrarDialogo = true
+                                    }
+                                },
+                                yaInscrito = item.agendada
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                         }
@@ -110,7 +118,6 @@ fun AgregarScreen(
             }
         }
 
-        // Snackbar al fondo de la pantalla
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)

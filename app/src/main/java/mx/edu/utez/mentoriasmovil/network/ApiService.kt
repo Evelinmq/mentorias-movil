@@ -80,5 +80,7 @@ interface ApiService {
     @DELETE("api/usuarios/{id}")
     suspend fun eliminarUsuario(@Path("id") id: Long): Response<Unit>
 
+    @GET("api/mentorias-usuarios/conteo")
+    suspend fun obtenerConteoInscritos(): Map<Long, Long>
 
 }

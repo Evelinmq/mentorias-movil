@@ -9,5 +9,7 @@ data class AsesoriaData(
     val ubicacion: String,
     val hora: String,
     var agendada: Boolean = false,
-    val estado: String = "Pendiente"
+    val estado: String = "Pendiente",
+    val cupo: Int = 0,
+    val cupoTotal: Int = 0
 )
