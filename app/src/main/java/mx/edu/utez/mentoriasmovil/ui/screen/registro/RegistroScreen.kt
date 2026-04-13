@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,61 +61,35 @@ fun RegistroScreen(
         }
 
         Column(
-            modifier = Modifier//.
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 32.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo),
-                contentDescription = null,
-                modifier = Modifier.size(120.dp)
-            )
+            Spacer(modifier = Modifier.height(40.dp))
 
-            Text(
-                "Crear cuenta",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF2C1F3B)
-            )
+            // Cambia R.drawable.logo por el nombre real de tu recurso
+            // Image(painter = painterResource(id = R.drawable.logo), contentDescription = null, modifier = Modifier.size(120.dp))
+
+            Text("Crear cuenta", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2C1F3B))
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            RegistroField(
-                value = viewModel.nombre,
-                onValueChange = { viewModel.nombre = it },
-                label = "Nombre(s)",
-                error = viewModel.errorNombre
-            )
+            RegistroField(value = viewModel.nombre, onValueChange = { viewModel.nombre = it }, label = "Nombre(s)", error = viewModel.errorNombre)
 
-            RegistroField(
-                value = viewModel.apellidos,
-                onValueChange = { viewModel.apellidos = it },
-                label = "Apellidos",
-                error = viewModel.errorApellidos
-            )
+            RegistroField(value = viewModel.apellidoPaterno, onValueChange = { viewModel.apellidoPaterno = it }, label = "Apellido Paterno", error = viewModel.errorApellidoPaterno)
 
-            RegistroField(
-                value = viewModel.correo,
-                onValueChange = { viewModel.correo = it },
-                label = "Email",
-                error = viewModel.errorCorreo
-            )
+            RegistroField(value = viewModel.apellidoMaterno, onValueChange = { viewModel.apellidoMaterno = it }, label = "Apellido Materno", error = viewModel.errorApellidoMaterno)
 
-            RegistroField(
-                value = viewModel.contrasena,
-                onValueChange = { viewModel.contrasena = it },
-                label = "Password",
-                error = viewModel.errorContrasena,
-                isPassword = true
-            )
+            RegistroField(value = viewModel.correo, onValueChange = { viewModel.correo = it }, label = "Email", error = viewModel.errorCorreo)
 
-            RolDropdown(
-                selectedRol = viewModel.rol,
-                onRolSelected = { viewModel.rol = it }
-            )
+            RegistroField(value = viewModel.contrasena, onValueChange = { viewModel.contrasena = it }, label = "Password", error = viewModel.errorContrasena, isPassword = true)
+
+            GenericDropdown(label = "Rol", options = listOf("Mentor", "Aprendiz"), selectedOption = viewModel.rol, onOptionSelected = { viewModel.rol = it }, error = viewModel.errorRol)
+
+            GenericDropdown(label = "Carrera", options = viewModel.listaCarreras, selectedOption = viewModel.carreraSeleccionada, onOptionSelected = { viewModel.carreraSeleccionada = it }, error = viewModel.errorCarrera)
 
             Spacer(modifier = Modifier.height(30.dp))
 
@@ -124,92 +99,70 @@ fun RegistroScreen(
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A3B7A))
             ) {
-                Text("Crear", fontSize = 18.sp, color = Color.White)
+                if (viewModel.isLoading) CircularProgressIndicator(color = Color.White)
+                else Text("Crear", fontSize = 18.sp, color = Color.White)
             }
 
             TextButton(onClick = onBackToLogin) {
                 Text("¿Ya tienes cuenta? Inicia sesión", color = Color.Gray)
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
 
 @Composable
-fun RegistroField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    error: String = "",
-    isPassword: Boolean = false
-) {
-    Column {
+fun RegistroField(value: String, onValueChange: (String) -> Unit, label: String, error: String = "", isPassword: Boolean = false) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             placeholder = { Text(label, color = Color.Gray) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(50),
             isError = error.isNotEmpty(),
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color.LightGray,
-                focusedBorderColor = Color(0xFF1A3B7A)
-            )
+            colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = Color.LightGray, focusedBorderColor = Color(0xFF1A3B7A))
         )
-
         if (error.isNotEmpty()) {
-            Text(
-                text = error,
-                color = Color.Red,
-                fontSize = 12.sp
-            )
+            Text(text = error, color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(start = 16.dp))
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RolDropdown(
-    selectedRol: String,
-    onRolSelected: (String) -> Unit
-) {
-    val roles = listOf("Mentor", "Aprendiz")
+fun GenericDropdown(label: String, options: List<String>, selectedOption: String, onOptionSelected: (String) -> Unit, error: String = "") {
     var expanded by remember { mutableStateOf(false) }
 
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-
-        OutlinedTextField(
-            value = selectedRol,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Rol") },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            },
-            modifier = Modifier
-                .menuAnchor() // 👈 CLAVE
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(50)
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            roles.forEach { rol ->
-                DropdownMenuItem(
-                    text = { Text(rol) },
-                    onClick = {
-                        onRolSelected(rol)
-                        expanded = false
-                    }
-                )
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+            OutlinedTextField(
+                value = if (selectedOption.isEmpty()) "Selecciona $label" else selectedOption,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(label) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                shape = RoundedCornerShape(50),
+                isError = error.isNotEmpty(),
+                colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = Color.LightGray, focusedBorderColor = Color(0xFF1A3B7A))
+            )
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            onOptionSelected(option)
+                            expanded = false
+                        }
+                    )
+                }
             }
+        }
+        if (error.isNotEmpty()) {
+            Text(text = error, color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(start = 16.dp))
         }
     }
 }
