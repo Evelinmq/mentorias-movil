@@ -51,9 +51,16 @@ class LoginViewModel : ViewModel() {
 
                 if (response.isSuccessful) {
                     val respuesta = response.body()
+
+                    // Asegúrate de que tu objeto respuesta tenga el campo .token o .jwt
+                    RetrofitClient.token = respuesta?.token
+
+                    // 2. Guardar el resto de la info como ya lo hacías
                     userRole = respuesta?.rol ?: ""
                     userId = respuesta?.id ?: 0L
                     isLoginSuccess = true
+
+                    Log.d("LOGIN", "Token guardado correctamente")
                     Log.d("LOGIN", "Rol: $userRole | ID: $userId")
                 } else {
                     errorMessage = "Credenciales incorrectas"
