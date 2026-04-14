@@ -70,9 +70,6 @@ fun RegistroScreen(
         ) {
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Cambia R.drawable.logo por el nombre real de tu recurso
-            // Image(painter = painterResource(id = R.drawable.logo), contentDescription = null, modifier = Modifier.size(120.dp))
-
             Text("Crear cuenta", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2C1F3B))
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -89,8 +86,16 @@ fun RegistroScreen(
 
             GenericDropdown(label = "Rol", options = listOf("Mentor", "Aprendiz"), selectedOption = viewModel.rol, onOptionSelected = { viewModel.rol = it }, error = viewModel.errorRol)
 
-            GenericDropdown(label = "Carrera", options = viewModel.listaCarreras, selectedOption = viewModel.carreraSeleccionada, onOptionSelected = { viewModel.carreraSeleccionada = it }, error = viewModel.errorCarrera)
-
+            GenericDropdown(
+                label = "Carrera",
+                options = viewModel.listaCarreras.map { it.nombre }, // Pasamos solo los nombres para mostrar
+                selectedOption = viewModel.carreraSeleccionada?.nombre ?: "", // Mostramos el nombre seleccionado
+                onOptionSelected = { nombreSeleccionado ->
+                    // Buscamos el objeto Carrera que coincide con el nombre seleccionado
+                    viewModel.carreraSeleccionada = viewModel.listaCarreras.find { it.nombre == nombreSeleccionado }
+                },
+                error = viewModel.errorCarrera
+            )
             Spacer(modifier = Modifier.height(30.dp))
 
             Button(
