@@ -12,9 +12,9 @@ object RetrofitClient {
     var token: String? = null
 
     private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS) // Tiempo máximo para conectar
-        .readTimeout(30, TimeUnit.SECONDS)    // Tiempo máximo para recibir datos
-        .writeTimeout(30, TimeUnit.SECONDS)   // Tiempo máximo para enviar datos
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .addInterceptor { chain ->
             val original = chain.request()
             val requestBuilder = original.newBuilder()
