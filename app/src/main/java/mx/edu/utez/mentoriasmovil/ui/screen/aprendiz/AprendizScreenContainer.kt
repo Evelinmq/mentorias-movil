@@ -14,7 +14,6 @@ fun AprendizScreenContainer(
     navController: NavController,
     aprendizId: Long = 0L
 ) {
-    // Un solo ViewModel compartido entre las 3 pantallas con el id real
     val viewModel: AprendizViewModel = viewModel(
         factory = AprendizViewModel.factory(aprendizId)
     )
@@ -37,6 +36,7 @@ fun AprendizScreenContainer(
                         popUpTo("aprendiz_asesoria/$aprendizId")
                         launchSingleTop = true
                     }
+                    viewModel.cargarTodo()
                 }
             )
         }
@@ -52,6 +52,8 @@ fun AprendizScreenContainer(
                         popUpTo("aprendiz_asesoria/$aprendizId")
                         launchSingleTop = true
                     }
+                    // También actualizamos al agendar con éxito
+                    viewModel.cargarTodo()
                 }
             )
         }
