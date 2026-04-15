@@ -1,10 +1,8 @@
 package mx.edu.utez.mentoriasmovil.ui.screen.admin
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,13 +34,18 @@ import mx.edu.utez.mentoriasmovil.viewmodel.MentoriaViewModel
 fun HistorialContent(paddingValues: PaddingValues, viewModel: MentoriaViewModel = viewModel()) {
 
     var mentor by remember { mutableStateOf("") }
-    var materiaBusqueda by remember { mutableStateOf("") }
-
-    var fechaInicio by remember { mutableStateOf("") }
-    var fechaFin by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.obtenerDatos()
+    }
+
+    // Filtrar la lista localmente por el nombre del mentor si se escribe algo
+    val mentoriasFiltradas = if (mentor.isBlank()) {
+        viewModel.listarMentorias
+    } else {
+        viewModel.listarMentorias.filter { 
+            it.mentor?.contains(mentor, ignoreCase = true) == true 
+        }
     }
 
     Column(
@@ -53,43 +56,12 @@ fun HistorialContent(paddingValues: PaddingValues, viewModel: MentoriaViewModel 
     ) {
 
         Column(modifier = Modifier.padding(16.dp)) {
-
             OutlinedTextField(
                 value = mentor,
                 onValueChange = { mentor = it },
                 label = { Text("Buscar mentor") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
+                modifier = Modifier.fillMaxWidth()
             )
-
-            OutlinedTextField(
-                value = materiaBusqueda,
-                onValueChange = { materiaBusqueda = it },
-                label = { Text("Buscar materia") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-
-                OutlinedTextField(
-                    value = fechaInicio,
-                    onValueChange = { fechaInicio = it },
-                    label = { Text("Fecha inicio (dd/MM/yyyy)") },
-                    modifier = Modifier.weight(1f)
-                )
-
-                OutlinedTextField(
-                    value = fechaFin,
-                    onValueChange = { fechaFin = it },
-                    label = { Text("Fecha fin (dd/MM/yyyy)") },
-                    modifier = Modifier.weight(1f)
-                )
-            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -98,12 +70,12 @@ fun HistorialContent(paddingValues: PaddingValues, viewModel: MentoriaViewModel 
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp)
         ) {
-            items(viewModel.listarMentorias) { mentoria ->
+            items(mentoriasFiltradas) { mentoria ->
                 MentoriaCard(
                     fecha = mentoria.fecha,
                     hora = "${mentoria.horaInicio}-${mentoria.horaFin}",
-                    mentor = "Mentor ID: ${mentoria.id}",
-                    carrera = "Carrera", // Ajustar si el modelo tiene carrera
+                    mentor = mentoria.mentor ?: "Sin mentor",
+                    carrera = mentoria.espacio ?: "Sin espacio",
                     materia = mentoria.materia ?: "Sin materia"
                 )
                 Spacer(modifier = Modifier.height(8.dp))
