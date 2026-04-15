@@ -13,6 +13,12 @@ interface ApiService {
     @GET("api/mentorias/movil/mentor/{id}")
     suspend fun obtenerMentoriasPorMentor(@Path("id") mentorId: Long): List<Mentoria>
 
+    @PUT("api/mentorias/{id}/estado")
+    suspend fun actualizarEstadoMentoria(
+        @Path("id") id: Long,
+        @Query("nuevoEstado") nuevoEstado: String
+    ): Response<Unit>
+
     // --- INSCRIPCIONES ---
     @POST("api/mentorias-usuarios")
     suspend fun agendarMentoria(

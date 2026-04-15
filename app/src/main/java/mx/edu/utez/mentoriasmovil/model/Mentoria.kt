@@ -9,5 +9,8 @@ data class Mentoria(
     val espacio: String?,
     val materia: String?,
     val mentor: String?,
-    val email: String? // Agregamos el campo para el correo
+    val email: String?,
+    val estado: String? = "PENDIENTE",
+    val tema: String? = "Sin tema",
+    val alumnos: List<Any>? = null
 )

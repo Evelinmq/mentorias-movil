@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import mx.edu.utez.mentoriasmovil.model.*
 import mx.edu.utez.mentoriasmovil.network.RetrofitClient
@@ -49,29 +50,28 @@ class AprendizViewModel(private val usuarioId: Long) : ViewModel() {
             isLoading = true
             errorMessage = null
             try {
-                val agendadasResponse = RetrofitClient.apiService
-                    .obtenerMisMentorias(usuarioId)
-                listaAsesoriasAgendadas = agendadasResponse
-                    .map { it.toAsesoriaData(true)}
+                // Ejecutamos las llamadas en paralelo para mayor velocidad
+                val agendadasDeferred = async { RetrofitClient.apiService.obtenerMisMentorias(usuarioId) }
+                val historialDeferred = async { RetrofitClient.apiService.obtenerMiHistorial(usuarioId) }
+                val disponiblesDeferred = async { RetrofitClient.apiService.obtenerMentorias() }
+                val conteoDeferred = async { RetrofitClient.apiService.obtenerConteoInscritos() }
 
-                val historialResponse = RetrofitClient.apiService
-                    .obtenerMiHistorial(usuarioId)
-                listaHistorial = historialResponse
-                    .map { it.toAsesoriaData(false) }
+                // Esperamos los resultados
+                val agendadasResponse = agendadasDeferred.await()
+                val historialResponse = historialDeferred.await()
+                val disponiblesResponse = disponiblesDeferred.await()
+                val conteo = conteoDeferred.await()
 
-                val disponiblesResponse = RetrofitClient.apiService.obtenerMentorias()
-                listaAsesoriasDisponibles = disponiblesResponse
-                    .filter { mentoria ->
-                        !listaAsesoriasAgendadas.any { it.id == mentoria.id }
-                    }
-                    .map { it.toAsesoriaData(false) }
-
-                val conteo = RetrofitClient.apiService.obtenerConteoInscritos()
+                // Procesamos las respuestas
+                listaAsesoriasAgendadas = agendadasResponse.map { it.toAsesoriaData(true) }
+                listaHistorial = historialResponse.map { it.toAsesoriaData(false) }
 
                 listaAsesoriasDisponibles = disponiblesResponse
                     .filter { mentoria ->
                         val noAgendada = !listaAsesoriasAgendadas.any { it.id == mentoria.id }
-                        val tieneCupo = (conteo[mentoria.id]?.toInt() ?: 0) < (mentoria.cupo ?: 0)
+                        val inscritos = conteo[mentoria.id]?.toInt() ?: 0
+                        val cupoTotal = mentoria.cupo ?: 0
+                        val tieneCupo = inscritos < cupoTotal
                         noAgendada && tieneCupo
                     }
                     .map { mentoria ->
@@ -81,13 +81,12 @@ class AprendizViewModel(private val usuarioId: Long) : ViewModel() {
                         )
                     }
 
-                Log.d("AprendizVM",
-                    "Agendadas: ${listaAsesoriasAgendadas.size} | " +
-                            "Historial: ${listaHistorial.size} | " +
-                            "Disponibles: ${listaAsesoriasDisponibles.size}")
+                Log.d("AprendizVM", "Carga paralela exitosa: " +
+                        "${listaAsesoriasAgendadas.size} agendadas, " +
+                        "${listaAsesoriasDisponibles.size} disponibles")
 
             } catch (e: Exception) {
-                Log.e("AprendizVM", "Error: ${e.message}")
+                Log.e("AprendizVM", "Error en cargarTodo: ${e.message}", e)
                 errorMessage = "Error al conectar con el servidor"
             } finally {
                 isLoading = false

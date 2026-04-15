@@ -1,9 +1,6 @@
 package mx.edu.utez.mentoriasmovil.ui.screen.mentor
 
-import android.R.attr.onClick
 import android.util.Log
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,78 +9,46 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import mx.edu.utez.mentoriasmovil.ui.components.AddButton
-import mx.edu.utez.mentoriasmovil.ui.components.MainHeader
-
-import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
-
-import androidx.compose.runtime.getValue
-
-import androidx.compose.runtime.setValue
-
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import mx.edu.utez.mentoriasmovil.model.Edificio
 import mx.edu.utez.mentoriasmovil.model.Espacio
 import mx.edu.utez.mentoriasmovil.model.Materia
+import mx.edu.utez.mentoriasmovil.ui.components.AddButton
+import mx.edu.utez.mentoriasmovil.ui.components.MainHeader
+import mx.edu.utez.mentoriasmovil.ui.components.mentor.cardEstado
+import mx.edu.utez.mentoriasmovil.ui.components.mentor.cardMentor
 import mx.edu.utez.mentoriasmovil.viewmodel.EdificioViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.EspacioViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.MateriaViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.MentoriaViewModel
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MentorScreen(navController: NavController,  mentorId: Long) {
-
+fun MentorScreen(navController: NavController, mentorId: Long) {
     var showDialog by remember { mutableStateOf(false) }
     val dateEstado = rememberDatePickerState()
-
-    // ✅ ViewModel ARRIBA
     val mentoriaViewModel: MentoriaViewModel = viewModel()
 
-    // ✅ CARGA INICIAL
     LaunchedEffect(Unit) {
         mentoriaViewModel.obtenerMentoriasPorMentor(mentorId)
     }
 
     val fechaMs = dateEstado.selectedDateMillis
-
-    // ✅ FILTRO POR FECHA
     LaunchedEffect(fechaMs) {
         fechaMs?.let {
             val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
             val fechaFormateada = sdf.format(java.util.Date(it))
-
             mentoriaViewModel.filtrarPorFecha(fechaFormateada)
         }
     }
@@ -97,33 +62,29 @@ fun MentorScreen(navController: NavController,  mentorId: Long) {
             })
         }
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
-
             Spacer(modifier = Modifier.height(16.dp))
 
-            // BOTÓN AGREGAR
             AddButton(onClick = { showDialog = true })
 
             if (showDialog) {
                 AgregarMentoriaDialog(
                     fechaSeleccionada = dateEstado.selectedDateMillis,
                     onDismiss = { showDialog = false },
-                    onGuardar = {}
+                    onGuardar = { mentoriaViewModel.obtenerMentoriasPorMentor(mentorId) }
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // CALENDARIO
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFE8E7E7),
+                color = Color(0xFFF5F5F5),
                 tonalElevation = 2.dp
             ) {
                 DatePicker(
@@ -136,34 +97,49 @@ fun MentorScreen(navController: NavController,  mentorId: Long) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ✅ LISTA DE MENTORÍAS
             val mentorias = mentoriaViewModel.mentoriasFiltradas
 
-            mentorias.forEach { mentoria ->
-
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    tonalElevation = 2.dp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-
-                        Text(text = "Materia: ${mentoria.materia}")
-                        Text(text = "Hora: ${mentoria.horaInicio} - ${mentoria.horaFin}")
-                        Text(text = "Cupo: ${mentoria.cupo}")
-
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(mentorias) { mentoria ->
+                    val estadoEnum = when (mentoria.estado?.uppercase()) {
+                        "ACEPTADA" -> cardEstado.ACEPTADA
+                        "CANCELADA" -> cardEstado.CANCELADA
+                        "PENDIENTE" -> cardEstado.PENDIENTE
+                        else -> cardEstado.SIN_ALUMNOS
                     }
+
+                    cardMentor(
+                        correo = mentoria.email ?: "sin_correo@utez.edu.mx",
+                        fecha = mentoria.fecha,
+                        nombre = mentoria.mentor ?: "Sin nombre",
+                        materia = mentoria.materia ?: "Sin materia",
+                        tema = mentoria.tema ?: "Sin tema",
+                        sitio = mentoria.espacio ?: "Sin ubicación",
+                        tiempo = "${mentoria.horaInicio} - ${mentoria.horaFin}",
+                        estado = estadoEnum,
+                        cantidadActualAprendices = mentoria.alumnos?.size ?: 0,
+                        maxAprendices = mentoria.cupo ?: 0,
+                        Aceptada = {
+                            mentoriaViewModel.cambiarEstado(mentoria.id, "ACEPTADA", mentorId)
+                        },
+                        Cancelada = {
+                            mentoriaViewModel.cambiarEstado(mentoria.id, "CANCELADA", mentorId)
+                        }
+                    )
                 }
             }
 
-            // FECHA SELECCIONADA
             if (fechaMs != null) {
                 val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
                 val fechaFormateada = sdf.format(java.util.Date(fechaMs))
-
-                Text(text = "Fecha seleccionada: $fechaFormateada")
+                Text(
+                    text = "Fecha seleccionada: $fechaFormateada",
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }
@@ -176,57 +152,33 @@ fun AgregarMentoriaDialog(
     onDismiss: () -> Unit,
     onGuardar: () -> Unit
 ) {
-
     val mentoriaViewModel: MentoriaViewModel = viewModel()
-//edificio backend
-    val viewModel: EdificioViewModel = viewModel()
-
-    LaunchedEffect(Unit) {
-        viewModel.obtenerEdificios()
-    }
-    var edificioSeleccionado by remember { mutableStateOf<Edificio?>(null) }
-    var expanded by remember { mutableStateOf(false) }
-
-    //aulas backend
+    val edificioViewModel: EdificioViewModel = viewModel()
     val espacioViewModel: EspacioViewModel = viewModel()
-
-    LaunchedEffect(Unit) {
-        espacioViewModel.obtenerEspacios()
-    }
-
-    var aulaSeleccionada by remember { mutableStateOf<Espacio?>(null) }
-    var expandedAula by remember { mutableStateOf(false) }
-//materia y cuatris backend
-
     val materiaViewModel: MateriaViewModel = viewModel()
+
     LaunchedEffect(Unit) {
+        edificioViewModel.obtenerEdificios()
+        espacioViewModel.obtenerEspacios()
         materiaViewModel.obtenerMaterias()
     }
+
+    var edificioSeleccionado by remember { mutableStateOf<Edificio?>(null) }
+    var expandedEdificio by remember { mutableStateOf(false) }
+    var aulaSeleccionada by remember { mutableStateOf<Espacio?>(null) }
+    var expandedAula by remember { mutableStateOf(false) }
     var materiaSeleccionada by remember { mutableStateOf<Materia?>(null) }
     var expandedMateria by remember { mutableStateOf(false) }
 
-    // ------------------ STATES ------------------
     var horaInicio by remember { mutableStateOf("") }
     var horaFin by remember { mutableStateOf("") }
-    var cuatrimestre by remember { mutableStateOf("") }
-    var materia by remember { mutableStateOf("") }
-    var aula by remember { mutableStateOf("") }
-    var edificio by remember { mutableStateOf("") }
-
-    // TimePickers
     var showTimePickerInicio by remember { mutableStateOf(false) }
     var showTimePickerFin by remember { mutableStateOf(false) }
 
-    // ERRORES
     var errorFecha by remember { mutableStateOf("") }
     var errorHoraInicio by remember { mutableStateOf("") }
     var errorHoraFin by remember { mutableStateOf("") }
-    var errorCuatrimestre by remember { mutableStateOf("") }
-    var errorMateria by remember { mutableStateOf("") }
-    var errorAula by remember { mutableStateOf("") }
-    var errorEdificio by remember { mutableStateOf("") }
 
-    // ------------------ FECHA ------------------
     val fechaFormateada = remember(fechaSeleccionada) {
         fechaSeleccionada?.let {
             val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
@@ -234,30 +186,22 @@ fun AgregarMentoriaDialog(
         } ?: ""
     }
 
-    // ------------------ UI ------------------
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {},
         dismissButton = {},
         title = { Text("Agregar mentoría") },
         text = {
-
-            Column {
-
-                // -------- FECHA --------
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = fechaFormateada,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Fecha") },
                     isError = errorFecha.isNotEmpty(),
-                    supportingText = {
-                        if (errorFecha.isNotEmpty()) Text(errorFecha)
-                    },
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // -------- HORA INICIO --------
                 OutlinedTextField(
                     value = horaInicio,
                     onValueChange = {},
@@ -268,14 +212,9 @@ fun AgregarMentoriaDialog(
                             Icon(Icons.Default.AccessTime, contentDescription = null)
                         }
                     },
-                    isError = errorHoraInicio.isNotEmpty(),
-                    supportingText = {
-                        if (errorHoraInicio.isNotEmpty()) Text(errorHoraInicio)
-                    },
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // -------- HORA FIN --------
                 OutlinedTextField(
                     value = horaFin,
                     onValueChange = {},
@@ -286,51 +225,30 @@ fun AgregarMentoriaDialog(
                             Icon(Icons.Default.AccessTime, contentDescription = null)
                         }
                     },
-                    isError = errorHoraFin.isNotEmpty(),
-                    supportingText = {
-                        if (errorHoraFin.isNotEmpty()) Text(errorHoraFin)
-                    },
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // -------- CUATRIMESTRE --------
-                OutlinedTextField(
-                    value = materiaSeleccionada?.cuatrimestre?.toString() ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Cuatrimestre") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                // -------- MATERIA --------
                 ExposedDropdownMenuBox(
                     expanded = expandedMateria,
                     onExpandedChange = { expandedMateria = !expandedMateria }
                 ) {
-
                     OutlinedTextField(
                         value = materiaSeleccionada?.nombre ?: "",
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Materia") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedMateria)
-                        },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth()
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedMateria) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
-
                     ExposedDropdownMenu(
                         expanded = expandedMateria,
                         onDismissRequest = { expandedMateria = false }
                     ) {
-                        materiaViewModel.listaMaterias.forEach { materia ->
-
+                        materiaViewModel.listaMaterias.forEach { mat ->
                             DropdownMenuItem(
-                                text = { Text(materia.nombre ?: "") },
+                                text = { Text(mat.nombre ?: "") },
                                 onClick = {
-                                    materiaSeleccionada = materia
+                                    materiaSeleccionada = mat
                                     expandedMateria = false
                                 }
                             )
@@ -338,35 +256,27 @@ fun AgregarMentoriaDialog(
                     }
                 }
 
-                // -------- AULA --------
                 ExposedDropdownMenuBox(
                     expanded = expandedAula,
                     onExpandedChange = { expandedAula = !expandedAula }
                 ) {
-
                     OutlinedTextField(
                         value = aulaSeleccionada?.nombre ?: "",
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Aula") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedAula)
-                        },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth()
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedAula) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
-
                     ExposedDropdownMenu(
                         expanded = expandedAula,
                         onDismissRequest = { expandedAula = false }
                     ) {
-
-                        espacioViewModel.espacios.forEach { espacio ->
+                        espacioViewModel.espacios.forEach { esp ->
                             DropdownMenuItem(
-                                text = { Text(espacio.nombre) },
+                                text = { Text(esp.nombre) },
                                 onClick = {
-                                    aulaSeleccionada = espacio
+                                    aulaSeleccionada = esp
                                     expandedAula = false
                                 }
                             )
@@ -374,110 +284,29 @@ fun AgregarMentoriaDialog(
                     }
                 }
 
-                // -------- EDIFICIO --------
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
-                ) {
-
-                    OutlinedTextField(
-                        value = edificioSeleccionado?.nombre ?: "",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Edificio") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                        },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth()
-                    )
-
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        viewModel.edificios.forEach { edificio ->
-                            DropdownMenuItem(
-                                text = { Text(edificio.nombre) },
-                                onClick = {
-                                    edificioSeleccionado = edificio
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                // -------- BOTONES --------
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-
-                    TextButton(onClick = onDismiss) {
-                        Text("Cancelar")
-                    }
-
-                    Button(
-                        onClick = {
-                            Log.d("TEST_CLICK", "BOTON FUNCIONA")
-
-                            var isValid = true
-
-                            if (fechaFormateada.isBlank()) {
-                                errorFecha = "Selecciona una fecha"
-                                isValid = false
-                            }
-
-                            if (horaInicio.isBlank()) {
-                                errorHoraInicio = "Campo obligatorio"
-                                isValid = false
-                            }
-
-                            if (horaFin.isBlank()) {
-                                errorHoraFin = "Campo obligatorio"
-                                isValid = false
-                            }
-
-                            if (horaInicio.isNotBlank() && horaFin.isNotBlank()) {
-                                if (horaFin <= horaInicio) {
-                                    errorHoraFin = "Debe ser mayor a hora inicio"
-                                    isValid = false
-                                }
-                            }
-
-                            if (materiaSeleccionada == null) {
-                                errorMateria = "Selecciona una materia"
-                                isValid = false
-                            }
-
-                            if (aulaSeleccionada == null) {
-                                errorAula = "Selecciona un aula"
-                                isValid = false
-                            }
-
-                            if (edificioSeleccionado == null) {
-                                errorEdificio = "Selecciona un edificio"
-                                isValid = false
-                            }
-
-                            if (!isValid) return@Button
-
+                    TextButton(onClick = onDismiss) { Text("Cancelar") }
+                    Button(onClick = {
+                        if (fechaFormateada.isNotBlank() && horaInicio.isNotBlank() && 
+                            horaFin.isNotBlank() && materiaSeleccionada != null && 
+                            aulaSeleccionada != null) {
                             mentoriaViewModel.crearMentoria(
                                 fecha = fechaFormateada,
                                 horaInicio = horaInicio,
                                 horaFin = horaFin,
-                                cuatrimestre =  materiaSeleccionada?.cuatrimestre ?: 0,
+                                cuatrimestre = materiaSeleccionada?.cuatrimestre ?: 0,
                                 cupo = 5,
                                 materiaId = materiaSeleccionada?.id ?: 0,
                                 espacioId = aulaSeleccionada?.id ?: 0,
                                 mentorId = 1
                             )
-
+                            onGuardar()
                             onDismiss()
                         }
-                    ) {
+                    }) {
                         Text("Guardar")
                     }
                 }
@@ -485,57 +314,31 @@ fun AgregarMentoriaDialog(
         }
     )
 
-    // ------------------ TIME PICKER INICIO ------------------
     if (showTimePickerInicio) {
-
         val timeState = rememberTimePickerState()
-
         AlertDialog(
             onDismissRequest = { showTimePickerInicio = false },
             confirmButton = {
                 TextButton(onClick = {
                     horaInicio = String.format("%02d:%02d", timeState.hour, timeState.minute)
                     showTimePickerInicio = false
-                    errorHoraInicio = ""
-                }) {
-                    Text("Aceptar")
-                }
+                }) { Text("Aceptar") }
             },
-            dismissButton = {
-                TextButton(onClick = { showTimePickerInicio = false }) {
-                    Text("Cancelar")
-                }
-            },
-            text = {
-                TimePicker(state = timeState)
-            }
+            text = { TimePicker(state = timeState) }
         )
     }
 
-    // ------------------ TIME PICKER FIN ------------------
     if (showTimePickerFin) {
-
         val timeState = rememberTimePickerState()
-
         AlertDialog(
             onDismissRequest = { showTimePickerFin = false },
             confirmButton = {
                 TextButton(onClick = {
                     horaFin = String.format("%02d:%02d", timeState.hour, timeState.minute)
                     showTimePickerFin = false
-                    errorHoraFin = ""
-                }) {
-                    Text("Aceptar")
-                }
+                }) { Text("Aceptar") }
             },
-            dismissButton = {
-                TextButton(onClick = { showTimePickerFin = false }) {
-                    Text("Cancelar")
-                }
-            },
-            text = {
-                TimePicker(state = timeState)
-            }
+            text = { TimePicker(state = timeState) }
         )
     }
 }

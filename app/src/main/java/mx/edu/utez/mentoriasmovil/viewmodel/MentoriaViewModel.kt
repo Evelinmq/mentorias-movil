@@ -17,17 +17,21 @@ class MentoriaViewModel : ViewModel() {
 
     var listarMentorias by mutableStateOf<List<Mentoria>>(emptyList())
     var mentoriasFiltradas by mutableStateOf<List<Mentoria>>(emptyList())
+    var isLoading by mutableStateOf(false)
 
     fun obtenerDatos() {
         viewModelScope.launch {
+            isLoading = true
             try {
-                val respuesta = RetrofitClient.apiService.obtenerMentorias() // 🔥 endpoint nuevo
+                val respuesta = RetrofitClient.apiService.obtenerMentorias() 
                 listarMentorias = respuesta
                 mentoriasFiltradas = respuesta
 
                 Log.d("API_TEST", "Datos recibidos: ${respuesta.size}")
             } catch (e: Exception) {
                 Log.e("API_TEST", "Error: ${e.message}")
+            } finally {
+                isLoading = false
             }
         }
     }
@@ -76,7 +80,7 @@ class MentoriaViewModel : ViewModel() {
 
                 if (response.isSuccessful) {
                     Log.d("API_TEST", "CREADO CORRECTAMENTE")
-                    obtenerDatos()
+                    obtenerMentoriasPorMentor(mentorId)
                 } else {
                     Log.e("API_TEST", response.errorBody()?.string() ?: "Error")
                 }
@@ -95,6 +99,7 @@ class MentoriaViewModel : ViewModel() {
 
     fun obtenerMentoriasPorMentor(mentorId: Long) {
         viewModelScope.launch {
+            isLoading = true
             try {
                 val respuesta = RetrofitClient.apiService.obtenerMentoriasPorMentor(mentorId)
                 listarMentorias = respuesta
@@ -103,6 +108,24 @@ class MentoriaViewModel : ViewModel() {
                 Log.d("API_TEST", "Mentorías del mentor: ${respuesta.size}")
             } catch (e: Exception) {
                 Log.e("API_TEST", "Error: ${e.message}")
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    fun cambiarEstado(mentoriaId: Long, nuevoEstado: String, mentorId: Long) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitClient.apiService.actualizarEstadoMentoria(mentoriaId, nuevoEstado)
+                if (response.isSuccessful) {
+                    Log.d("API_TEST", "Estado actualizado a $nuevoEstado")
+                    obtenerMentoriasPorMentor(mentorId)
+                } else {
+                    Log.e("API_TEST", "Error al actualizar estado: ${response.message()}")
+                }
+            } catch (e: Exception) {
+                Log.e("API_TEST", "Exception al cambiar estado: ${e.message}")
             }
         }
     }
