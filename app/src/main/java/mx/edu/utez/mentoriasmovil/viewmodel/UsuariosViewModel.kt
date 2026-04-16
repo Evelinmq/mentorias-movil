@@ -28,9 +28,13 @@ class UsuariosViewModel(private val apiService: ApiService) : ViewModel() {
             _isLoading.value = true
             try {
                 val response = apiService.listarPorEstado(nombreEstado)
+                // ESTA LÍNEA ES PARA DEPURAR:
+                println("DEBUG: Cargando $nombreEstado. Cantidad recibida: ${response.size}")
+
                 _usuarios.value = response
             } catch (e: Exception) {
-                _mensaje.value = "Error al conectar con el servidor: ${e.message}"
+                println("DEBUG: Error cargando usuarios: ${e.message}")
+                _mensaje.value = "Error: ${e.message}"
             } finally {
                 _isLoading.value = false
             }
@@ -42,14 +46,17 @@ class UsuariosViewModel(private val apiService: ApiService) : ViewModel() {
             try {
                 val payload = mapOf(
                     "id" to usuarioId,
-                    "nuevoEstadoId" to 1L
+                    "nuevoEstadoId" to 1L // ID 1 según tu imagen es 'Activo'
                 )
-                apiService.cambiarEstado(payload)
+                val response = apiService.cambiarEstado(payload)
 
-                cargarUsuarios(viendoPendientes = true)
-                _mensaje.value = "Usuario aceptado con éxito"
+                if (response.isSuccessful) {
+                    // Recargamos la lista de pendientes para confirmar que ya no está
+                    cargarUsuarios(viendoPendientes = true)
+                    _mensaje.value = "Usuario activado correctamente"
+                }
             } catch (e: Exception) {
-                _mensaje.value = "No se pudo aceptar al usuario"
+                _mensaje.value = "Error al conectar"
             }
         }
     }

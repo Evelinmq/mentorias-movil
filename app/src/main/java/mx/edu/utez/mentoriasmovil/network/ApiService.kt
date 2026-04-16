@@ -89,4 +89,8 @@ interface ApiService {
     @GET("api/mentorias-usuarios/conteo")
     suspend fun obtenerConteoInscritos(): Map<Long, Long>
 
+    @POST("api/usuarios")
+    suspend fun registrarUsuario(@Body payload: RegistroDTO): Response<Unit>
+
+
 }

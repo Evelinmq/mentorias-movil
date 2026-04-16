@@ -1,5 +1,6 @@
 package mx.edu.utez.mentoriasmovil.ui.screen.admin
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,6 +45,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.ui.platform.LocalContext
 import mx.edu.utez.mentoriasmovil.viewmodel.UsuariosViewModel
 
 
@@ -63,6 +65,8 @@ fun AlumnosScreen(
     var usuarioSeleccionadoId by remember { mutableLongStateOf(0L) }
     var nombreMostrar by remember { mutableStateOf("") }
     var tipoAccion by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val mensaje by viewModel.mensaje.collectAsState()
 
 
     LaunchedEffect(viendoPendientes) {
@@ -84,6 +88,12 @@ fun AlumnosScreen(
                 showConfirmDialog = false
             }
         )
+    }
+    LaunchedEffect(mensaje) {
+        mensaje?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            viewModel.limpiarMensaje()
+        }
     }
 
     Column(
@@ -156,7 +166,7 @@ fun AlumnosScreen(
                     onRejectClick = {
                         usuarioSeleccionadoId = usuario.id
                         nombreMostrar = usuario.nombre
-                        tipoAccion = "eliminar" // Rechazar suele ser borrar la solicitud
+                        tipoAccion = "eliminar" // Esto activará el diálogo y luego viewModel.eliminarUsuario
                         showConfirmDialog = true
                     },
                     onEditClick = { /* Lógica editar */ },

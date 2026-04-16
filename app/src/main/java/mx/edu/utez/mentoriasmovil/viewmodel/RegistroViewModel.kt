@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import mx.edu.utez.mentoriasmovil.model.Carrera
+import mx.edu.utez.mentoriasmovil.model.RegistroDTO
 import mx.edu.utez.mentoriasmovil.network.RetrofitClient
 
 class RegistroViewModel : ViewModel() {
@@ -87,11 +88,33 @@ class RegistroViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                // Aquí iría tu @POST de registro
-                // val registro = RetrofitClient.api.registrarUsuario(...)
-                onSuccess()
+                // 1. Mapeamos el rol a ID (Ajusta según tu BD: Mentor=1, Aprendiz=2, etc.)
+                val idRol = if (rol == "Mentor") 1L else 2L
+
+                // 2. Creamos el objeto DTO que el backend espera
+                val newUser = RegistroDTO(
+                    nombre = nombre,
+                    apellidoPaterno = apellidoPaterno,
+                    apellidoMaterno = apellidoMaterno,
+                    email = correo,
+                    password = contrasena,
+                    rolesIds = listOf(idRol),
+                    carreraId = carreraSeleccionada?.id ?: 0L
+                )
+
+                // 3. HACEMOS LA PETICIÓN REAL
+                val response = RetrofitClient.apiService.registrarUsuario(newUser)
+
+                if (response.isSuccessful) {
+                    // Si el servidor responde 201 Created o 200 OK
+                    onSuccess()
+                } else {
+                    // Si el servidor responde con error (ej: el correo ya existe)
+                    mensajeErrorBackend = "Error del servidor: ${response.code()}"
+                }
             } catch (e: Exception) {
-                mensajeErrorBackend = "Error al registrar: ${e.message}"
+                // Si no hay internet o el servidor está apagado
+                mensajeErrorBackend = "Error de conexión: ${e.localizedMessage}"
             } finally {
                 isLoading = false
             }
