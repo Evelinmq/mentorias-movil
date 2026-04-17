@@ -13,11 +13,12 @@ interface ApiService {
     @GET("api/mentorias/movil/mentor/{id}")
     suspend fun obtenerMentoriasPorMentor(@Path("id") mentorId: Long): List<Mentoria>
 
-    @PUT("api/mentorias/{id}/estado")
-    suspend fun actualizarEstadoMentoria(
-        @Path("id") id: Long,
-        @Query("nuevoEstado") nuevoEstado: String
-    ): Response<Unit>
+    // Ajustado para coincidir con MentoriaController.java del Backend
+    @PUT("api/mentorias/{id}/aceptar")
+    suspend fun aceptarMentoria(@Path("id") id: Long): Response<Unit>
+
+    @PUT("api/mentorias/{id}/cancelar")
+    suspend fun cancelarMentoria(@Path("id") id: Long): Response<Unit>
 
     // --- INSCRIPCIONES ---
     @POST("api/mentorias-usuarios")
@@ -91,6 +92,4 @@ interface ApiService {
 
     @POST("api/usuarios")
     suspend fun registrarUsuario(@Body payload: RegistroDTO): Response<Unit>
-
-
 }

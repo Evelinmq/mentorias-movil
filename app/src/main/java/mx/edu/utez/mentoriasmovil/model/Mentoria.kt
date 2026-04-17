@@ -14,7 +14,9 @@ data class Mentoria(
     val email: String?,
     val estado: EstadoMentoria?,
     val tema: String? = "Sin tema",
-    val alumnos: List<Any>? = null
+    val alumnos: List<Any>? = null,
+    // Campo extra para la UI de la App
+    var conteoReal: Int = 0
 )
 
 data class EstadoMentoria(

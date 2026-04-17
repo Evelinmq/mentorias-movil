@@ -2,17 +2,7 @@ package mx.edu.utez.mentoriasmovil.ui.screen.mentor
 
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -31,7 +21,9 @@ import androidx.navigation.NavController
 import mx.edu.utez.mentoriasmovil.model.Edificio
 import mx.edu.utez.mentoriasmovil.model.Espacio
 import mx.edu.utez.mentoriasmovil.model.Materia
+import mx.edu.utez.mentoriasmovil.model.Mentoria
 import mx.edu.utez.mentoriasmovil.ui.components.AddButton
+import mx.edu.utez.mentoriasmovil.ui.components.ConfirmDialog
 import mx.edu.utez.mentoriasmovil.ui.components.MainHeader
 import mx.edu.utez.mentoriasmovil.ui.components.mentor.cardEstado
 import mx.edu.utez.mentoriasmovil.ui.components.mentor.cardMentor
@@ -39,13 +31,12 @@ import mx.edu.utez.mentoriasmovil.viewmodel.EdificioViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.EspacioViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.MateriaViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.MentoriaViewModel
-import java.util.Calendar
-import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MentorScreen(navController: NavController, mentorId: Long) {
     var showDialog by remember { mutableStateOf(false) }
+    var mentoriaParaCancelar by remember { mutableStateOf<Mentoria?>(null) }
     val dateEstado = rememberDatePickerState()
     val mentoriaViewModel: MentoriaViewModel = viewModel()
 
@@ -60,6 +51,20 @@ fun MentorScreen(navController: NavController, mentorId: Long) {
             val fechaFormateada = sdf.format(java.util.Date(it))
             mentoriaViewModel.filtrarPorFecha(fechaFormateada)
         }
+    }
+
+    if (mentoriaParaCancelar != null) {
+        ConfirmDialog(
+            title = "Confirmar Cancelación",
+            message = "¿Estás seguro de que deseas cancelar esta asesoría? Esta acción no se puede deshacer.",
+            onDismiss = { mentoriaParaCancelar = null },
+            onConfirm = {
+                mentoriaParaCancelar?.let {
+                    mentoriaViewModel.cambiarEstado(it.id, "CANCELADA", mentorId)
+                }
+                mentoriaParaCancelar = null
+            }
+        )
     }
 
     Scaffold(
@@ -81,16 +86,10 @@ fun MentorScreen(navController: NavController, mentorId: Long) {
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AddButton(onClick = { showDialog = true })
-                
-                // Leyenda de estados
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    LegendItem(color = cardEstado.ACEPTADA.color, text = "Activa")
-                    LegendItem(color = cardEstado.CANCELADA.color, text = "Cancelada")
-                }
             }
 
             if (showDialog) {
@@ -120,39 +119,55 @@ fun MentorScreen(navController: NavController, mentorId: Long) {
             Spacer(modifier = Modifier.height(16.dp))
 
             val mentorias = mentoriaViewModel.mentoriasFiltradas
+            val isLoading = mentoriaViewModel.isLoading
 
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(mentorias) { mentoria ->
-                    // Ajuste para obtener el nombre del estado desde el objeto
-                    val estadoNombre = mentoria.estado?.nombre?.uppercase()
-                    val estadoEnum = when (estadoNombre) {
-                        "ACEPTADA" -> cardEstado.ACEPTADA
-                        "CANCELADA" -> cardEstado.CANCELADA
-                        "PENDIENTE" -> cardEstado.PENDIENTE
-                        else -> cardEstado.SIN_ALUMNOS
-                    }
-
-                    cardMentor(
-                        correo = mentoria.email ?: "sin_correo@utez.edu.mx",
-                        fecha = mentoria.fecha,
-                        nombre = mentoria.mentor ?: "Sin nombre",
-                        materia = mentoria.materia ?: "Sin materia",
-                        tema = mentoria.tema ?: "Sin tema",
-                        sitio = mentoria.espacio ?: "Sin ubicación",
-                        tiempo = "${mentoria.horaInicio} - ${mentoria.horaFin}",
-                        estado = estadoEnum,
-                        cantidadActualAprendices = mentoria.alumnos?.size ?: 0,
-                        maxAprendices = mentoria.cupo ?: 0,
-                        Aceptada = {
-                            mentoriaViewModel.cambiarEstado(mentoria.id, "ACEPTADA", mentorId)
-                        },
-                        Cancelada = {
-                            mentoriaViewModel.cambiarEstado(mentoria.id, "CANCELADA", mentorId)
-                        }
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color(0xFF1A3B7A)
                     )
+                } else if (mentorias.isEmpty()) {
+                    Text(
+                        text = "No hay mentorías programadas para este día.",
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(mentorias) { mentoria ->
+                            val estadoNombre = mentoria.estado?.nombre?.uppercase()
+                            val estadoEnum = when (estadoNombre) {
+                                "ACEPTADA" -> cardEstado.ACEPTADA
+                                "CANCELADA" -> cardEstado.CANCELADA
+                                "PENDIENTE" -> cardEstado.PENDIENTE
+                                else -> cardEstado.SIN_ALUMNOS
+                            }
+
+                            cardMentor(
+                                correo = mentoria.email ?: "sin_correo@utez.edu.mx",
+                                fecha = mentoria.fecha,
+                                nombre = mentoria.mentor ?: "Sin nombre",
+                                materia = mentoria.materia ?: "Sin materia",
+                                tema = mentoria.tema ?: "Sin tema",
+                                sitio = mentoria.espacio ?: "Sin ubicación",
+                                tiempo = "${mentoria.horaInicio} - ${mentoria.horaFin}",
+                                estado = estadoEnum,
+                                cantidadActualAprendices = mentoria.conteoReal,
+                                maxAprendices = mentoria.cupo ?: 0,
+                                Aceptada = {
+                                    mentoriaViewModel.cambiarEstado(mentoria.id, "ACEPTADA", mentorId)
+                                },
+                                Cancelada = {
+                                    mentoriaParaCancelar = mentoria
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -166,19 +181,6 @@ fun MentorScreen(navController: NavController, mentorId: Long) {
                 )
             }
         }
-    }
-}
-
-@Composable
-fun LegendItem(color: Color, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(10.dp)
-                .background(color, CircleShape)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text = text, fontSize = 12.sp, color = Color.Gray)
     }
 }
 

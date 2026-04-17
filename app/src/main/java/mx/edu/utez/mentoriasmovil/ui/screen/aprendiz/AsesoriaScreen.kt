@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,15 +20,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import mx.edu.utez.mentoriasmovil.model.AsesoriaData
-import mx.edu.utez.mentoriasmovil.ui.components.AprendizHeader
 import mx.edu.utez.mentoriasmovil.ui.components.aprendiz.AsesoriaDetalleDialog
-import mx.edu.utez.mentoriasmovil.ui.nav.AprendizBottomBar
-import mx.edu.utez.mentoriasmovil.ui.theme.MentoriasMovilTheme
 import mx.edu.utez.mentoriasmovil.viewmodel.AprendizViewModel
 
 val StatusGreen = Color(0xFF4CAF50)
@@ -51,7 +48,7 @@ fun AsesoriaScreen(
         AsesoriaDetalleDialog(
             data = asesoriaSeleccionada!!,
             onDismiss = { mostrarDialogo = false },
-            onConfirm = null, // No hay botón de confirmar porque ya están agendadas
+            onConfirm = null, 
             confirmText = "Cerrar"
         )
     }
@@ -62,15 +59,6 @@ fun AsesoriaScreen(
             .padding(paddingValues)
             .background(Color.White)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.End
-        ) {
-            EstadoItem(texto = "Agendada", color = StatusGreen)
-            EstadoItem(texto = "Aceptación pendiente", color = StatusPending)
-        }
 
         Box(modifier = Modifier.fillMaxSize()) {
             if (isLoading) {
@@ -149,7 +137,8 @@ fun AsesoriaCard(
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = data.email,
@@ -157,31 +146,50 @@ fun AsesoriaCard(
                         textDecoration = TextDecoration.Underline,
                         color = Color(0xFF5F6368)
                     )
-                    Column(horizontalAlignment = Alignment.End) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Contador de alumnos añadido aquí
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = Color.Gray
+                        )
+                        Text(
+                            text = " ${data.cupo}/${data.cupoTotal}",
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
                         if (mostrarPunto) {
                             Box(
                                 modifier = Modifier
-                                    .size(12.dp)
+                                    .size(10.dp)
                                     .clip(CircleShape)
                                     .background(indicadorColor)
                             )
                         }
-                        Text(
-                            text = data.fecha,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF5F6368)
-                        )
                     }
                 }
 
-                Text(
-                    text = data.nombre,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryBlue,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = data.nombre,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryBlue,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                    Text(
+                        text = data.fecha,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF5F6368)
+                    )
+                }
 
                 HorizontalDivider(color = Color.LightGray, thickness = 1.dp)
 
@@ -222,22 +230,5 @@ fun AsesoriaCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun EstadoItem(texto: String, color: Color) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 2.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(10.dp)
-                .clip(CircleShape)
-                .background(color)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = texto, fontSize = 12.sp, color = Color.Gray)
     }
 }

@@ -9,6 +9,8 @@ import mx.edu.utez.mentoriasmovil.model.Mentoria
 import mx.edu.utez.mentoriasmovil.network.RetrofitClient
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import mx.edu.utez.mentoriasmovil.model.IdWrapper
 import mx.edu.utez.mentoriasmovil.model.MentoriaRequest
 
@@ -18,6 +20,7 @@ class MentoriaViewModel : ViewModel() {
     var listarMentorias by mutableStateOf<List<Mentoria>>(emptyList())
     var mentoriasFiltradas by mutableStateOf<List<Mentoria>>(emptyList())
     var isLoading by mutableStateOf(false)
+    private var fechaFiltroActual: String? = null
 
     fun obtenerDatos() {
         viewModelScope.launch {
@@ -25,9 +28,7 @@ class MentoriaViewModel : ViewModel() {
             try {
                 val respuesta = RetrofitClient.apiService.obtenerMentorias() 
                 listarMentorias = respuesta
-                mentoriasFiltradas = respuesta
-
-                Log.d("API_TEST", "Datos recibidos: ${respuesta.size}")
+                aplicarFiltros()
             } catch (e: Exception) {
                 Log.e("API_TEST", "Error: ${e.message}")
             } finally {
@@ -36,16 +37,11 @@ class MentoriaViewModel : ViewModel() {
         }
     }
 
-    fun filtrar(materia: String, espacio: String) {
-        mentoriasFiltradas = listarMentorias.filter { mentoria ->
-
-            val coincideMateria = materia.isBlank() ||
-                    (mentoria.materia?.contains(materia, ignoreCase = true) ?: false)
-
-            val coincideEspacio = espacio.isBlank() ||
-                    (mentoria.espacio?.contains(espacio, ignoreCase = true) ?: false)
-
-            coincideMateria && coincideEspacio
+    private fun aplicarFiltros() {
+        mentoriasFiltradas = if (fechaFiltroActual == null) {
+            listarMentorias
+        } else {
+            listarMentorias.filter { it.fecha == fechaFiltroActual }
         }
     }
 
@@ -61,7 +57,6 @@ class MentoriaViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-
                 val request = MentoriaRequest(
                     fecha = fecha,
                     horaInicio = "$horaInicio:00",
@@ -73,18 +68,10 @@ class MentoriaViewModel : ViewModel() {
                     mentor = IdWrapper(mentorId),
                     materia = IdWrapper(materiaId)
                 )
-
-                Log.d("API_TEST", request.toString())
-
                 val response = RetrofitClient.apiService.crearMentoria(request)
-
                 if (response.isSuccessful) {
-                    Log.d("API_TEST", "CREADO CORRECTAMENTE")
                     obtenerMentoriasPorMentor(mentorId)
-                } else {
-                    Log.e("API_TEST", response.errorBody()?.string() ?: "Error")
                 }
-
             } catch (e: Exception) {
                 Log.e("API_TEST", "Exception: ${e.message}")
             }
@@ -92,8 +79,12 @@ class MentoriaViewModel : ViewModel() {
     }
 
     fun filtrarPorFecha(fecha: String) {
-        mentoriasFiltradas = listarMentorias.filter { mentoria ->
-            mentoria.fecha == fecha
+        viewModelScope.launch {
+            isLoading = true
+            fechaFiltroActual = fecha
+            delay(300) 
+            aplicarFiltros()
+            isLoading = false
         }
     }
 
@@ -101,13 +92,30 @@ class MentoriaViewModel : ViewModel() {
         viewModelScope.launch {
             isLoading = true
             try {
-                val respuesta = RetrofitClient.apiService.obtenerMentoriasPorMentor(mentorId)
-                listarMentorias = respuesta
-                mentoriasFiltradas = respuesta
+                val mentoriasDeferred = async { RetrofitClient.apiService.obtenerMentoriasPorMentor(mentorId) }
+                val conteoDeferred = async { RetrofitClient.apiService.obtenerConteoInscritos() }
 
-                Log.d("API_TEST", "Mentorías del mentor: ${respuesta.size}")
+                val respuesta = mentoriasDeferred.await()
+                val conteoMap = conteoDeferred.await()
+                val conteoStringKeys = conteoMap.mapKeys { it.key.toString() }
+
+                listarMentorias = respuesta.map { mentoria ->
+                    val inscritos = conteoStringKeys[mentoria.id.toString()]?.toInt() 
+                        ?: mentoria.alumnos?.size 
+                        ?: 0
+                    
+                    val temaFinal = if (mentoria.tema.isNullOrBlank()) "Sin tema" else mentoria.tema
+
+                    mentoria.copy(
+                        conteoReal = inscritos,
+                        tema = temaFinal
+                    )
+                }
+                
+                aplicarFiltros()
+                Log.d("MentoriaVM", "Datos sincronizados con éxito")
             } catch (e: Exception) {
-                Log.e("API_TEST", "Error: ${e.message}")
+                Log.e("MentoriaVM", "Error: ${e.message}")
             } finally {
                 isLoading = false
             }
@@ -117,17 +125,21 @@ class MentoriaViewModel : ViewModel() {
     fun cambiarEstado(mentoriaId: Long, nuevoEstado: String, mentorId: Long) {
         viewModelScope.launch {
             try {
-                val response = RetrofitClient.apiService.actualizarEstadoMentoria(mentoriaId, nuevoEstado)
-                if (response.isSuccessful) {
-                    Log.d("API_TEST", "Estado actualizado a $nuevoEstado")
-                    obtenerMentoriasPorMentor(mentorId)
+                val response = if (nuevoEstado == "ACEPTADA") {
+                    RetrofitClient.apiService.aceptarMentoria(mentoriaId)
                 } else {
-                    Log.e("API_TEST", "Error al actualizar estado: ${response.message()}")
+                    RetrofitClient.apiService.cancelarMentoria(mentoriaId)
+                }
+
+                if (response.isSuccessful) {
+                    obtenerMentoriasPorMentor(mentorId)
+                    Log.d("API_TEST", "Estado actualizado a $nuevoEstado")
+                } else {
+                    Log.e("API_TEST", "Error al cambiar estado: ${response.code()}")
                 }
             } catch (e: Exception) {
-                Log.e("API_TEST", "Exception al cambiar estado: ${e.message}")
+                Log.e("API_TEST", "Exception: ${e.message}")
             }
         }
     }
-
 }
