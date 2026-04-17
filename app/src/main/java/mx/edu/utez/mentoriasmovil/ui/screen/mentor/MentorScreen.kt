@@ -1,7 +1,9 @@
 package mx.edu.utez.mentoriasmovil.ui.screen.mentor
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,16 +11,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import mx.edu.utez.mentoriasmovil.model.Edificio
@@ -32,6 +39,8 @@ import mx.edu.utez.mentoriasmovil.viewmodel.EdificioViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.EspacioViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.MateriaViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.MentoriaViewModel
+import java.util.Calendar
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,13 +79,26 @@ fun MentorScreen(navController: NavController, mentorId: Long) {
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            AddButton(onClick = { showDialog = true })
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AddButton(onClick = { showDialog = true })
+                
+                // Leyenda de estados
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    LegendItem(color = cardEstado.ACEPTADA.color, text = "Activa")
+                    LegendItem(color = cardEstado.CANCELADA.color, text = "Cancelada")
+                }
+            }
 
             if (showDialog) {
                 AgregarMentoriaDialog(
                     fechaSeleccionada = dateEstado.selectedDateMillis,
                     onDismiss = { showDialog = false },
-                    onGuardar = { mentoriaViewModel.obtenerMentoriasPorMentor(mentorId) }
+                    onGuardar = { mentoriaViewModel.obtenerMentoriasPorMentor(mentorId) },
+                    mentorId = mentorId
                 )
             }
 
@@ -104,7 +126,9 @@ fun MentorScreen(navController: NavController, mentorId: Long) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(mentorias) { mentoria ->
-                    val estadoEnum = when (mentoria.estado?.uppercase()) {
+                    // Ajuste para obtener el nombre del estado desde el objeto
+                    val estadoNombre = mentoria.estado?.nombre?.uppercase()
+                    val estadoEnum = when (estadoNombre) {
                         "ACEPTADA" -> cardEstado.ACEPTADA
                         "CANCELADA" -> cardEstado.CANCELADA
                         "PENDIENTE" -> cardEstado.PENDIENTE
@@ -145,21 +169,33 @@ fun MentorScreen(navController: NavController, mentorId: Long) {
     }
 }
 
+@Composable
+fun LegendItem(color: Color, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(10.dp)
+                .background(color, CircleShape)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text = text, fontSize = 12.sp, color = Color.Gray)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AgregarMentoriaDialog(
     fechaSeleccionada: Long?,
     onDismiss: () -> Unit,
-    onGuardar: () -> Unit
+    onGuardar: () -> Unit,
+    mentorId: Long
 ) {
     val mentoriaViewModel: MentoriaViewModel = viewModel()
     val edificioViewModel: EdificioViewModel = viewModel()
-    val espacioViewModel: EspacioViewModel = viewModel()
     val materiaViewModel: MateriaViewModel = viewModel()
 
     LaunchedEffect(Unit) {
         edificioViewModel.obtenerEdificios()
-        espacioViewModel.obtenerEspacios()
         materiaViewModel.obtenerMaterias()
     }
 
@@ -175,9 +211,9 @@ fun AgregarMentoriaDialog(
     var showTimePickerInicio by remember { mutableStateOf(false) }
     var showTimePickerFin by remember { mutableStateOf(false) }
 
-    var errorFecha by remember { mutableStateOf("") }
-    var errorHoraInicio by remember { mutableStateOf("") }
-    var errorHoraFin by remember { mutableStateOf("") }
+    var errorMsj by remember { mutableStateOf<String?>(null) }
+
+    val aulasFiltradas = edificioSeleccionado?.espacios ?: emptyList()
 
     val fechaFormateada = remember(fechaSeleccionada) {
         fechaSeleccionada?.let {
@@ -193,40 +229,44 @@ fun AgregarMentoriaDialog(
         title = { Text("Agregar mentoría") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (errorMsj != null) {
+                    Text(errorMsj!!, color = Color.Red, style = MaterialTheme.typography.bodySmall)
+                }
+
                 OutlinedTextField(
                     value = fechaFormateada,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Fecha") },
-                    isError = errorFecha.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                OutlinedTextField(
-                    value = horaInicio,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Hora inicio") },
-                    trailingIcon = {
-                        IconButton(onClick = { showTimePickerInicio = true }) {
-                            Icon(Icons.Default.AccessTime, contentDescription = null)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                OutlinedTextField(
-                    value = horaFin,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Hora fin") },
-                    trailingIcon = {
-                        IconButton(onClick = { showTimePickerFin = true }) {
-                            Icon(Icons.Default.AccessTime, contentDescription = null)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = horaInicio,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Inicio") },
+                        trailingIcon = {
+                            IconButton(onClick = { showTimePickerInicio = true }) {
+                                Icon(Icons.Default.AccessTime, contentDescription = null)
+                            }
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = horaFin,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Fin") },
+                        trailingIcon = {
+                            IconButton(onClick = { showTimePickerFin = true }) {
+                                Icon(Icons.Default.AccessTime, contentDescription = null)
+                            }
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
                 ExposedDropdownMenuBox(
                     expanded = expandedMateria,
@@ -257,29 +297,73 @@ fun AgregarMentoriaDialog(
                 }
 
                 ExposedDropdownMenuBox(
+                    expanded = expandedEdificio,
+                    onExpandedChange = { expandedEdificio = !expandedEdificio }
+                ) {
+                    OutlinedTextField(
+                        value = edificioSeleccionado?.nombre ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Docencia (Edificio)") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedEdificio) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedEdificio,
+                        onDismissRequest = { expandedEdificio = false }
+                    ) {
+                        edificioViewModel.edificios.forEach { ed ->
+                            DropdownMenuItem(
+                                text = { Text(ed.nombre) },
+                                onClick = {
+                                    edificioSeleccionado = ed
+                                    aulaSeleccionada = null
+                                    expandedEdificio = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                ExposedDropdownMenuBox(
                     expanded = expandedAula,
-                    onExpandedChange = { expandedAula = !expandedAula }
+                    onExpandedChange = { 
+                        if (edificioSeleccionado != null) expandedAula = !expandedAula 
+                    }
                 ) {
                     OutlinedTextField(
                         value = aulaSeleccionada?.nombre ?: "",
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Aula") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedAula) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expandedAula,
-                        onDismissRequest = { expandedAula = false }
-                    ) {
-                        espacioViewModel.espacios.forEach { esp ->
-                            DropdownMenuItem(
-                                text = { Text(esp.nombre) },
-                                onClick = {
-                                    aulaSeleccionada = esp
-                                    expandedAula = false
+                        placeholder = { 
+                            Text(
+                                when {
+                                    edificioSeleccionado == null -> "Selecciona docencia primero"
+                                    aulasFiltradas.isEmpty() -> "No hay aulas disponibles"
+                                    else -> "Selecciona aula"
                                 }
-                            )
+                            ) 
+                        },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedAula) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        enabled = edificioSeleccionado != null && aulasFiltradas.isNotEmpty()
+                    )
+                    
+                    if (aulasFiltradas.isNotEmpty()) {
+                        ExposedDropdownMenu(
+                            expanded = expandedAula,
+                            onDismissRequest = { expandedAula = false }
+                        ) {
+                            aulasFiltradas.forEach { esp ->
+                                DropdownMenuItem(
+                                    text = { Text(esp.nombre) },
+                                    onClick = {
+                                        aulaSeleccionada = esp
+                                        expandedAula = false
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -290,6 +374,11 @@ fun AgregarMentoriaDialog(
                 ) {
                     TextButton(onClick = onDismiss) { Text("Cancelar") }
                     Button(onClick = {
+                        if (horaInicio.isNotBlank() && horaFin.isNotBlank() && horaFin <= horaInicio) {
+                            errorMsj = "La hora de fin debe ser posterior a la de inicio"
+                            return@Button
+                        }
+
                         if (fechaFormateada.isNotBlank() && horaInicio.isNotBlank() && 
                             horaFin.isNotBlank() && materiaSeleccionada != null && 
                             aulaSeleccionada != null) {
@@ -301,10 +390,12 @@ fun AgregarMentoriaDialog(
                                 cupo = 5,
                                 materiaId = materiaSeleccionada?.id ?: 0,
                                 espacioId = aulaSeleccionada?.id ?: 0,
-                                mentorId = 1
+                                mentorId = mentorId
                             )
                             onGuardar()
                             onDismiss()
+                        } else {
+                            errorMsj = "Por favor completa todos los campos"
                         }
                     }) {
                         Text("Guardar")
@@ -322,6 +413,7 @@ fun AgregarMentoriaDialog(
                 TextButton(onClick = {
                     horaInicio = String.format("%02d:%02d", timeState.hour, timeState.minute)
                     showTimePickerInicio = false
+                    errorMsj = null
                 }) { Text("Aceptar") }
             },
             text = { TimePicker(state = timeState) }
@@ -336,6 +428,7 @@ fun AgregarMentoriaDialog(
                 TextButton(onClick = {
                     horaFin = String.format("%02d:%02d", timeState.hour, timeState.minute)
                     showTimePickerFin = false
+                    errorMsj = null
                 }) { Text("Aceptar") }
             },
             text = { TimePicker(state = timeState) }

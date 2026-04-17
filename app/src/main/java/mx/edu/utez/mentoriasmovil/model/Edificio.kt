@@ -1,6 +1,7 @@
 package mx.edu.utez.mentoriasmovil.model
 
-class Edificio(
+data class Edificio(
     val id: Long,
-    val nombre: String
+    val nombre: String,
+    val espacios: List<Espacio>? = null
 )

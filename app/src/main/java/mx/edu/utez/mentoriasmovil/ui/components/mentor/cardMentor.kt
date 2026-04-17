@@ -1,20 +1,14 @@
 package mx.edu.utez.mentoriasmovil.ui.components.mentor
 
-
-import android.R.attr.label
-import android.R.attr.shape
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,12 +22,9 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextFieldDefaults.contentPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -46,41 +37,43 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-enum class cardEstado(val color: Color) {
 
-    CANCELADA(Color(0xFF435972)),
-    ACEPTADA(Color(0xFF29D62F)),
+enum class cardEstado(val color: Color) {
+    CANCELADA(Color(0xFF1A237E)), // Azul institucional (del header)
+    ACEPTADA(Color(0xFF29D62F)),  // Verde brillante como el de la imagen
     PENDIENTE(Color(0xFFD62974)),
     SIN_ALUMNOS(Color(0xFF9DB4E3)),
-
-
 }
 
-
-
 @Composable
-fun cardMentor(correo: String, fecha: String,
-               nombre: String, materia: String, tema: String,
-               sitio: String, tiempo:String,estado: cardEstado,
-               cantidadActualAprendices: Int? = null,
-               maxAprendices: Int? = null, comentario : String = "Razón o motivo",
-               Aceptada : () -> Unit ={},
-               Cancelada : () -> Unit={}){
-
-    // la animación para cambiar el color segun el estado
+fun cardMentor(
+    correo: String,
+    fecha: String,
+    nombre: String,
+    materia: String,
+    tema: String,
+    sitio: String,
+    tiempo: String,
+    estado: cardEstado,
+    cantidadActualAprendices: Int? = null,
+    maxAprendices: Int? = null,
+    Aceptada: () -> Unit = {},
+    Cancelada: () -> Unit = {}
+) {
     val animaciónEstadoCard by animateColorAsState(targetValue = estado.color, label = "color")
 
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp),
-        shape = RoundedCornerShape(20.dp),
-        ) {
-        Row(modifier = Modifier
+    Card(
+        modifier = Modifier
             .fillMaxWidth()
-            .height(250.dp)
-            .background(Color(0xFFEFEFF0))) {
-
+            .padding(8.dp),
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(210.dp)
+                .background(Color(0xFFEFEFF0))
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -93,7 +86,6 @@ fun cardMentor(correo: String, fecha: String,
                     .padding(16.dp)
                     .fillMaxWidth()
             ) {
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -116,7 +108,6 @@ fun cardMentor(correo: String, fecha: String,
                     }
                 }
 
-
                 Text(
                     text = nombre,
                     style = MaterialTheme.typography.titleMedium,
@@ -124,8 +115,7 @@ fun cardMentor(correo: String, fecha: String,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp, color = Color.LightGray)
-
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), thickness = 0.5.dp, color = Color.LightGray)
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Row {
@@ -140,14 +130,12 @@ fun cardMentor(correo: String, fecha: String,
                     }
                 }
 
-
                 Row(modifier = Modifier.padding(top = 4.dp)) {
                     Text("Tema: ", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Text(tema, fontSize = 14.sp)
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconDetail(icon = Icons.Default.LocationOn, text = sitio)
@@ -155,28 +143,13 @@ fun cardMentor(correo: String, fecha: String,
                     IconDetail(icon = Icons.Default.Schedule, text = tiempo)
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                Text("Comentario", fontSize = 12.sp, color = Color.Gray)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.End
                 ) {
-
-                    OutlinedCard(
-                        modifier = Modifier.weight(1f).height(45.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, Color.LightGray),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
-                    ) {
-                        Box(Modifier.fillMaxSize().padding(horizontal = 8.dp), contentAlignment = Alignment.CenterStart) {
-                            Text(comentario, fontSize = 10.sp, color = Color.LightGray)
-                        }
-                    }
-
-
-
                     Button(
                         onClick = Cancelada,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD5D7DA)),
@@ -187,6 +160,7 @@ fun cardMentor(correo: String, fecha: String,
                     }
 
                     if (estado == cardEstado.PENDIENTE) {
+                        Spacer(modifier = Modifier.width(8.dp))
                         Button(
                             onClick = Aceptada,
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A237E)),
@@ -200,9 +174,7 @@ fun cardMentor(correo: String, fecha: String,
             }
         }
     }
-
-    }
-
+}
 
 @Composable
 fun IconDetail(icon: ImageVector, text: String) {
@@ -213,22 +185,17 @@ fun IconDetail(icon: ImageVector, text: String) {
     }
 }
 
-fun cardEstado(targetValue: Color, label: String) {}
-
-
 @Preview(showBackground = true)
 @Composable
-fun PreviewCardMentor(){
-
-        cardMentor(
-            correo = "20243ds148@utez.edu.mx",
-            fecha = "11/01/2026",
-            nombre = "Kimberly Guadalupe Loaiza Martínez",
-            materia = "Estructuras de programación",
-            tema = "Ciclos y estructuras de control",
-            sitio = "A2 - Docencia II",
-            tiempo = "13:00 - 14:00",
-            estado = cardEstado.SIN_ALUMNOS,
-            comentario = "Razón de asesoría rechazada"
-        )
+fun PreviewCardMentor() {
+    cardMentor(
+        correo = "20243ds148@utez.edu.mx",
+        fecha = "11/01/2026",
+        nombre = "Kimberly Guadalupe Loaiza Martínez",
+        materia = "Estructuras de programación",
+        tema = "Ciclos y estructuras de control",
+        sitio = "A2 - Docencia II",
+        tiempo = "13:00 - 14:00",
+        estado = cardEstado.SIN_ALUMNOS
+    )
 }

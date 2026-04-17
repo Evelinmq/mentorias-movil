@@ -1,5 +1,7 @@
 package mx.edu.utez.mentoriasmovil.model
 
+import com.google.gson.annotations.SerializedName
+
 data class Mentoria(
     val id: Long,
     val fecha: String,
@@ -10,7 +12,12 @@ data class Mentoria(
     val materia: String?,
     val mentor: String?,
     val email: String?,
-    val estado: String? = "PENDIENTE",
+    val estado: EstadoMentoria?,
     val tema: String? = "Sin tema",
     val alumnos: List<Any>? = null
+)
+
+data class EstadoMentoria(
+    val id: Long,
+    val nombre: String?
 )
