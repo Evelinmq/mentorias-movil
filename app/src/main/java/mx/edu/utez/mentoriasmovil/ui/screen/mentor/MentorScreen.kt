@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -86,10 +87,17 @@ fun MentorScreen(navController: NavController, mentorId: Long) {
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AddButton(onClick = { showDialog = true })
+                
+                // --- PUNTITOS DE ESTADO (INDICADORES) ---
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    StatusIndicator(color = Color(0xFF29D62F), text = "Agendada")
+                    Spacer(modifier = Modifier.width(12.dp))
+                    StatusIndicator(color = Color(0xFF1A237E), text = "Cancelada")
+                }
             }
 
             if (showDialog) {
@@ -140,11 +148,11 @@ fun MentorScreen(navController: NavController, mentorId: Long) {
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(mentorias) { mentoria ->
-                            val estadoNombre = mentoria.estado?.nombre?.uppercase()
-                            val estadoEnum = when (estadoNombre) {
-                                "ACEPTADA" -> cardEstado.ACEPTADA
-                                "CANCELADA" -> cardEstado.CANCELADA
-                                "PENDIENTE" -> cardEstado.PENDIENTE
+                            val estadoNombre = mentoria.estado?.nombre?.uppercase() ?: ""
+                            val estadoEnum = when {
+                                estadoNombre.contains("ACEPTADA") || estadoNombre.contains("ACEPTADO") -> cardEstado.ACEPTADA
+                                estadoNombre.contains("CANCELADA") || estadoNombre.contains("CANCELADO") -> cardEstado.CANCELADA
+                                estadoNombre.contains("PENDIENTE") -> cardEstado.PENDIENTE
                                 else -> cardEstado.SIN_ALUMNOS
                             }
 
@@ -181,6 +189,24 @@ fun MentorScreen(navController: NavController, mentorId: Long) {
                 )
             }
         }
+    }
+}
+
+@Composable
+fun StatusIndicator(color: Color, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .background(color, CircleShape)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            color = Color.Gray,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 

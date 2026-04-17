@@ -39,8 +39,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
 
 enum class cardEstado(val color: Color) {
-    CANCELADA(Color(0xFF1A237E)), // Azul institucional (del header)
-    ACEPTADA(Color(0xFF29D62F)),  // Verde brillante como el de la imagen
+    CANCELADA(Color(0xFF1A237E)), // Azul institucional para canceladas
+    ACEPTADA(Color(0xFF29D62F)),  // Verde
     PENDIENTE(Color(0xFFD62974)),
     SIN_ALUMNOS(Color(0xFF9DB4E3)),
 }
@@ -150,24 +150,34 @@ fun cardMentor(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.End
                 ) {
-                    Button(
-                        onClick = Cancelada,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD5D7DA)),
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp)
-                    ) {
-                        Text("Cancelar", fontSize = 12.sp, color = Color.DarkGray)
-                    }
-
-                    if (estado == cardEstado.PENDIENTE) {
-                        Spacer(modifier = Modifier.width(8.dp))
+                    if (estado == cardEstado.CANCELADA) {
+                        Text(
+                            text = "Esta asesoría ya está cancelada",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1A237E), // Azul oscuro para el texto
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    } else {
                         Button(
-                            onClick = Aceptada,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A237E)),
+                            onClick = Cancelada,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD5D7DA)),
                             shape = RoundedCornerShape(8.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp)
                         ) {
-                            Text("Aceptar", fontSize = 12.sp)
+                            Text("Cancelar", fontSize = 12.sp, color = Color.DarkGray)
+                        }
+
+                        if (estado == cardEstado.PENDIENTE) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = Aceptada,
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A237E)),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp)
+                            ) {
+                                Text("Aceptar", fontSize = 12.sp)
+                            }
                         }
                     }
                 }
