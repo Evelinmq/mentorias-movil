@@ -53,19 +53,15 @@ import androidx.compose.ui.geometry.Offset
 fun LoginScreen (viewModel: LoginViewModel,
 onLoginSuccess: (String, Long) -> Unit,
 onNavigateToRegister: () -> Unit,
-                 onNavigateToRecovery: () -> Unit
+                 onNavigateToRecovery: (String) -> Unit // <-- Cambio aquí
                  ) {
 
     LaunchedEffect(viewModel.isLoginSuccess) {
-        println("LOGIN SUCCESS: ${viewModel.isLoginSuccess}")
-        println("ROL RAW: ${viewModel.userRole}")
-
         if (viewModel.isLoginSuccess) {
             val rolLimpio = viewModel.userRole
                 .lowercase()
                 .replace("role_", "")
 
-            println("ROL LIMPIO: $rolLimpio")
             val mentorId = viewModel.userId
             onLoginSuccess(rolLimpio, mentorId)
             viewModel.isLoginSuccess = false
@@ -103,7 +99,10 @@ onNavigateToRegister: () -> Unit,
 
             OutlinedTextField(
                 value = viewModel.correo,
-                onValueChange = { viewModel.correo = it },
+                onValueChange = { 
+                    viewModel.correo = it 
+                    if (viewModel.errorCorreo.isNotEmpty()) viewModel.errorCorreo = ""
+                },
                 placeholder = { Text("Tu usuario") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(50),
@@ -145,7 +144,16 @@ onNavigateToRegister: () -> Unit,
             }
 
             TextButton(
-                onClick = { onNavigateToRecovery() },
+                onClick = { 
+                    val emailPattern = android.util.Patterns.EMAIL_ADDRESS
+                    if (viewModel.correo.isBlank()) {
+                        viewModel.errorCorreo = "Ingresa tu correo para recuperar contraseña"
+                    } else if (!emailPattern.matcher(viewModel.correo).matches()) {
+                        viewModel.errorCorreo = "Ingresa un correo electrónico válido"
+                    } else {
+                        onNavigateToRecovery(viewModel.correo) // <-- Pasamos el correo aquí
+                    }
+                },
                 modifier = Modifier.align(Alignment.Start)
             ) {
                 Text("¿Olvidaste tu contraseña?", color = Color.DarkGray, fontSize = 14.sp)
@@ -188,24 +196,5 @@ onNavigateToRegister: () -> Unit,
                 )
             }
         }
-
-        }
     }
-
-
-
-/*@Preview(showBackground = true)
-@Composable
-fun LoginPreview() {
-    MentoriasMovilTheme {
-        LoginScreen(
-            viewModel = LoginViewModel(),
-            onLoginSuccess = {},
-            onNavigateToRegister = {},
-            onNavigateToRecovery = {}
-        )
-        }
-
-    }
-*/
-
+}

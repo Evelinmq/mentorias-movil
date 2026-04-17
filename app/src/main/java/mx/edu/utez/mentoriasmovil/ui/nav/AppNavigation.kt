@@ -10,6 +10,7 @@ import mx.edu.utez.mentoriasmovil.ui.screen.admin.AdminScreenContainer
 import mx.edu.utez.mentoriasmovil.ui.screen.aprendiz.AprendizScreenContainer
 import mx.edu.utez.mentoriasmovil.ui.screen.login.LoginScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.mentor.MentorScreen
+import mx.edu.utez.mentoriasmovil.ui.screen.recuperacion.CambiarContrasenaScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.recuperacion.RecuperacionScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.registro.RegistroScreen
 import mx.edu.utez.mentoriasmovil.viewmodel.RegistroViewModel
@@ -49,7 +50,9 @@ fun AppNavigation() {
                     }
                 },
                 onNavigateToRegister = { navController.navigate("registro") },
-                onNavigateToRecovery = { navController.navigate("recovery") }
+                onNavigateToRecovery = { email -> 
+                    navController.navigate("recovery/$email") 
+                }
             )
         }
 
@@ -64,10 +67,29 @@ fun AppNavigation() {
         }
 
         // ─── RECUPERACIÓN ────────────────────────────────────────
-        composable("recovery") {
+        composable("recovery/{email}") { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            
             RecuperacionScreen(
+                email = email,
                 onBack = { navController.popBackStack() },
-                onResend = { println("Reenviar código") }
+                onResend = { 
+                    // Aquí puedes simular la validación del código y luego navegar
+                    navController.navigate("change_password")
+                }
+            )
+        }
+
+        // ─── CAMBIAR CONTRASEÑA ──────────────────────────────────
+        composable("change_password") {
+            CambiarContrasenaScreen(
+                onPasswordChanged = {
+                    // Al terminar, volvemos al login limpiando el historial
+                    navController.navigate("login") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                },
+                onBack = { navController.popBackStack() }
             )
         }
 
