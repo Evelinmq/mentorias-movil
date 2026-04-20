@@ -92,4 +92,13 @@ interface ApiService {
 
     @POST("api/usuarios")
     suspend fun registrarUsuario(@Body payload: RegistroDTO): Response<Unit>
+
+    @POST("api/usuarios/recuperar-password")
+    suspend fun enviarCodigo(@Body payload: Map<String, String>): Response<Map<String, String>>
+
+    @POST("api/usuarios/verificar-codigo")
+    suspend fun verificarCodigo(@Body payload: Map<String, String>): Response<Map<String, String>>
+
+    @POST("api/usuarios/actualizar-password")
+    suspend fun actualizarPassword(@Body payload: Map<String, String>): Response<Map<String, String>>
 }

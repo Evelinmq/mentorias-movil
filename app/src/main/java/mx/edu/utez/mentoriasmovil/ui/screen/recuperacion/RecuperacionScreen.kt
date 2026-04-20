@@ -21,12 +21,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.edu.utez.mentoriasmovil.R
+import mx.edu.utez.mentoriasmovil.viewmodel.RecuperacionViewModel
 
 @Composable
 fun RecuperacionScreen(
     email: String,
+    viewModel: RecuperacionViewModel,
     onBack: () -> Unit,
-    onResend: () -> Unit
+    onResend: () -> Unit,
+    onCodeVerified: () -> Unit
 ) {
     // Función para censurar el correo: d*****l@g****l.com
     val emailCensurado = remember(email) {
@@ -35,31 +38,33 @@ fun RecuperacionScreen(
             val usuario = partes[0]
             val dominioCompleto = partes[1]
             
-            // Censurar usuario
             val usuarioCensurado = if (usuario.length > 2) {
                 usuario.first() + "*".repeat(usuario.length - 2) + usuario.last()
-            } else {
-                "*"
-            }
+            } else { "*" }
 
-            // Censurar dominio (ej: gmail.com -> g****l.com)
             val dominioPartes = dominioCompleto.split(".")
             val nombreDominio = dominioPartes[0]
             val extension = if (dominioPartes.size > 1) "." + dominioPartes[1] else ""
             
             val dominioCensurado = if (nombreDominio.length > 2) {
                 nombreDominio.first() + "*".repeat(nombreDominio.length - 2) + nombreDominio.last()
-            } else {
-                "*"
-            }
+            } else { "*" }
 
             "$usuarioCensurado@$dominioCensurado$extension"
-        } else {
-            email
-        }
+        } else { email }
     }
 
     var code by remember { mutableStateOf(List(5) { "" }) }
+
+    // Verificación automática al completar los 5 dígitos
+    LaunchedEffect(code) {
+        val fullCode = code.joinToString("")
+        if (fullCode.length == 5) {
+            viewModel.verificarCodigo(email, fullCode) {
+                onCodeVerified()
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -112,12 +117,18 @@ fun RecuperacionScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            if (viewModel.isLoading) {
+                CircularProgressIndicator(color = Color(0xFF1A3B7A))
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 code.forEachIndexed { index, value ->
                     CodeBox(
                         value = value,
+                        enabled = !viewModel.isLoading,
                         onValueChange = {
-                            if (it.length <= 1) {
+                            if (it.length <= 1 && it.all { char -> char.isDigit() }) {
                                 val newCode = code.toMutableList()
                                 newCode[index] = it
                                 code = newCode
@@ -125,6 +136,15 @@ fun RecuperacionScreen(
                         }
                     )
                 }
+            }
+
+            viewModel.errorMessage?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -135,6 +155,7 @@ fun RecuperacionScreen(
             ) {
                 Button(
                     onClick = onBack,
+                    enabled = !viewModel.isLoading,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
                 ) {
                     Text("Volver", color = Color.Black)
@@ -142,6 +163,7 @@ fun RecuperacionScreen(
 
                 Button(
                     onClick = onResend,
+                    enabled = !viewModel.isLoading,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A3B7A))
                 ) {
                     Text("Reenviar", color = Color.White)
@@ -152,7 +174,7 @@ fun RecuperacionScreen(
 }
 
 @Composable
-fun CodeBox(value: String, onValueChange: (String) -> Unit) {
+fun CodeBox(value: String, enabled: Boolean, onValueChange: (String) -> Unit) {
     Box(
         modifier = Modifier
             .size(55.dp)
@@ -163,6 +185,7 @@ fun CodeBox(value: String, onValueChange: (String) -> Unit) {
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
+            enabled = enabled,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             textStyle = LocalTextStyle.current.copy(
                 fontSize = 22.sp,

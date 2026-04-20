@@ -144,17 +144,21 @@ onNavigateToRegister: () -> Unit,
             }
 
             TextButton(
-                onClick = { 
+                onClick = {
                     val emailPattern = android.util.Patterns.EMAIL_ADDRESS
                     if (viewModel.correo.isBlank()) {
                         viewModel.errorCorreo = "Ingresa tu correo para recuperar contraseña"
                     } else if (!emailPattern.matcher(viewModel.correo).matches()) {
                         viewModel.errorCorreo = "Ingresa un correo electrónico válido"
                     } else {
-                        onNavigateToRecovery(viewModel.correo) // <-- Pasamos el correo aquí
+                        // NUEVA LÓGICA: Primero enviamos, luego navegamos
+                        viewModel.enviarCodigoRecuperacion(viewModel.correo) {
+                            onNavigateToRecovery(viewModel.correo)
+                        }
                     }
                 },
-                modifier = Modifier.align(Alignment.Start)
+                modifier = Modifier.align(Alignment.Start),
+                enabled = !viewModel.isLoading // Evita clics dobles
             ) {
                 Text("¿Olvidaste tu contraseña?", color = Color.DarkGray, fontSize = 14.sp)
             }

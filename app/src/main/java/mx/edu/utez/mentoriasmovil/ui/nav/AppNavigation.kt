@@ -13,6 +13,7 @@ import mx.edu.utez.mentoriasmovil.ui.screen.mentor.MentorScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.recuperacion.CambiarContrasenaScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.recuperacion.RecuperacionScreen
 import mx.edu.utez.mentoriasmovil.ui.screen.registro.RegistroScreen
+import mx.edu.utez.mentoriasmovil.viewmodel.RecuperacionViewModel
 import mx.edu.utez.mentoriasmovil.viewmodel.RegistroViewModel
 
 @Composable
@@ -33,20 +34,14 @@ fun AppNavigation() {
                 viewModel = loginViewModel,
                 onLoginSuccess = { rol, id ->
                     val rolFinal = rol.trim().lowercase()
-
                     val destination = when (rolFinal) {
                         "mentor"                 -> "mentor_home/$id"
                         "aprendiz", "alumno"     -> "aprendiz_asesoria/$id"
                         "admin", "administrador" -> "admin_historial"
-                        else -> {
-                            println("ROL NO RECONOCIDO: $rolFinal")
-                            "login"
-                        }
+                        else -> "login"
                     }
-
                     navController.navigate(destination) {
                         popUpTo("login") { inclusive = true }
-                        launchSingleTop = true
                     }
                 },
                 onNavigateToRegister = { navController.navigate("registro") },
@@ -59,7 +54,6 @@ fun AppNavigation() {
         // ─── REGISTRO ────────────────────────────────────────────
         composable("registro") {
             val registroViewModel: RegistroViewModel = viewModel()
-
             RegistroScreen(
                 viewModel = registroViewModel,
                 onBackToLogin = { navController.popBackStack() }
@@ -69,22 +63,28 @@ fun AppNavigation() {
         // ─── RECUPERACIÓN ────────────────────────────────────────
         composable("recovery/{email}") { backStackEntry ->
             val email = backStackEntry.arguments?.getString("email") ?: ""
+            val recuperacionViewModel: RecuperacionViewModel = viewModel(factory = RecuperacionViewModel.Factory)
             
             RecuperacionScreen(
                 email = email,
+                viewModel = recuperacionViewModel,
                 onBack = { navController.popBackStack() },
-                onResend = { 
-                    // Aquí puedes simular la validación del código y luego navegar
-                    navController.navigate("change_password")
+                onResend = { /* Lógica reenvío */ },
+                onCodeVerified = {
+                    navController.navigate("change_password/$email")
                 }
             )
         }
 
         // ─── CAMBIAR CONTRASEÑA ──────────────────────────────────
-        composable("change_password") {
+        composable("change_password/{email}") { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            val recuperacionViewModel: RecuperacionViewModel = viewModel(factory = RecuperacionViewModel.Factory)
+
             CambiarContrasenaScreen(
+                email = email,
+                viewModel = recuperacionViewModel,
                 onPasswordChanged = {
-                    // Al terminar, volvemos al login limpiando el historial
                     navController.navigate("login") {
                         popUpTo("login") { inclusive = true }
                     }
@@ -95,64 +95,30 @@ fun AppNavigation() {
 
         // ─── MENTOR ──────────────────────────────────────────────
         composable("mentor_home/{mentorId}") { backStackEntry ->
-            val mentorId = backStackEntry.arguments
-                ?.getString("mentorId")?.toLong() ?: 0L
-
-            MentorScreen(
-                navController = navController,
-                mentorId = mentorId
-            )
+            val mentorId = backStackEntry.arguments?.getString("mentorId")?.toLong() ?: 0L
+            MentorScreen(navController = navController, mentorId = mentorId)
         }
 
         // ─── APRENDIZ ────────────────────────────────────────────
         composable("aprendiz_asesoria/{aprendizId}") { backStackEntry ->
-            val aprendizId = backStackEntry.arguments
-                ?.getString("aprendizId")?.toLong() ?: 0L
-
-            AprendizScreenContainer(
-                currentScreen = "aprendiz_asesoria",
-                navController = navController,
-                aprendizId = aprendizId
-            )
+            val aprendizId = backStackEntry.arguments?.getString("aprendizId")?.toLong() ?: 0L
+            AprendizScreenContainer("aprendiz_asesoria", navController, aprendizId)
         }
 
         composable("aprendiz_historial/{aprendizId}") { backStackEntry ->
-            val aprendizId = backStackEntry.arguments
-                ?.getString("aprendizId")?.toLong() ?: 0L
-
-            AprendizScreenContainer(
-                currentScreen = "aprendiz_historial",
-                navController = navController,
-                aprendizId = aprendizId
-            )
+            val aprendizId = backStackEntry.arguments?.getString("aprendizId")?.toLong() ?: 0L
+            AprendizScreenContainer("aprendiz_historial", navController, aprendizId)
         }
 
         composable("aprendiz_agregar/{aprendizId}") { backStackEntry ->
-            val aprendizId = backStackEntry.arguments
-                ?.getString("aprendizId")?.toLong() ?: 0L
-
-            AprendizScreenContainer(
-                currentScreen = "aprendiz_agregar",
-                navController = navController,
-                aprendizId = aprendizId
-            )
+            val aprendizId = backStackEntry.arguments?.getString("aprendizId")?.toLong() ?: 0L
+            AprendizScreenContainer("aprendiz_agregar", navController, aprendizId)
         }
 
         // ─── ADMIN ───────────────────────────────────────────────
-        composable("admin_historial") {
-            AdminScreenContainer("historial", navController)
-        }
-
-        composable("admin_alumnos") {
-            AdminScreenContainer("alumnos", navController)
-        }
-
-        composable("admin_materias") {
-            AdminScreenContainer("materias", navController)
-        }
-
-        composable("admin_carreras") {
-            AdminScreenContainer("carreras", navController)
-        }
+        composable("admin_historial") { AdminScreenContainer("historial", navController) }
+        composable("admin_alumnos") { AdminScreenContainer("alumnos", navController) }
+        composable("admin_materias") { AdminScreenContainer("materias", navController) }
+        composable("admin_carreras") { AdminScreenContainer("carreras", navController) }
     }
 }

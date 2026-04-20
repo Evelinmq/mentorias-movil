@@ -74,4 +74,23 @@ class LoginViewModel : ViewModel() {
             }
         }
     }
+
+    fun enviarCodigoRecuperacion(correo: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            isLoading = true
+            try {
+                // Usamos el apiService que ya tienes en el ViewModel
+                val response = RetrofitClient.apiService.enviarCodigo(mapOf("correo" to correo))
+                if (response.isSuccessful) {
+                    onSuccess() // Si el back responde 200, navegamos
+                } else {
+                    errorMessage = "No se pudo enviar el código. Verifica tu correo."
+                }
+            } catch (e: Exception) {
+                errorMessage = "Error de conexión con el servidor"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
 }
